@@ -14,6 +14,7 @@ Use this repository in a strict task-first mode.
   - `Fixes #<id>`
   - `Resolves #<id>`
   - `Refs #<id>`
+- If you forget to add this explicitly, use branch names containing the issue number (for example `feature/123-chat-persistence`); CI will auto-append `Refs #123`.
 
 ## Parent/Sub-Issue Model
 

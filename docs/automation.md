@@ -11,6 +11,11 @@ This repository uses GitHub automation for CI, pull request hygiene, dependency 
 - `.github/workflows/pr-title-conventional.yml`
   - Enforces Conventional Commit PR titles in the form `type(scope): description`.
 
+- `.github/workflows/pr-linked-issue.yml`
+  - Requires every PR to be linked to an issue with `Closes #<id>`, `Fixes #<id>`, `Resolves #<id>`, or `Refs #<id>`.
+  - If missing, auto-links from branch names that include the issue number (for example `feature/123-short-title` -> `Refs #123`).
+  - Fails the check when no explicit link exists and no issue number can be inferred.
+
 - `.github/workflows/bot-auto-approve.yml`
   - Auto-approves PRs only when label `bot-auto-approve` is present.
   - Uses `BOT_GITHUB_TOKEN`.
