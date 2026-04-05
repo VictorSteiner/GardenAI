@@ -5,7 +5,7 @@ on:
     types: [published, prereleased]
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 env:
@@ -96,4 +96,43 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  release-installer-artifact:
+    name: Package Pi USB Installer
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build installer archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          bundle_dir="gardenai-pi-installer-${tag}"
+
+          mkdir -p "${bundle_dir}/scripts"
+          mkdir -p "${bundle_dir}/docs"
+          mkdir -p "${bundle_dir}/mosquitto"
+
+          cp scripts/install-pi.sh "${bundle_dir}/scripts/install-pi.sh"
+          chmod +x "${bundle_dir}/scripts/install-pi.sh"
+
+          cp docker-compose.yml "${bundle_dir}/docker-compose.yml"
+          cp docker-compose.pi.yml "${bundle_dir}/docker-compose.pi.yml"
+          cp .env.pi.example "${bundle_dir}/.env.pi.example"
+          cp mosquitto/mosquitto.conf "${bundle_dir}/mosquitto/mosquitto.conf"
+          cp docs/INSTALL_FROM_USB.md "${bundle_dir}/docs/INSTALL_FROM_USB.md"
+
+          tar -czf "${bundle_dir}.tar.gz" "${bundle_dir}"
+          sha256sum "${bundle_dir}.tar.gz" > "${bundle_dir}.sha256"
+
+      - name: Upload installer assets to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            gardenai-pi-installer-${{ github.ref_name }}.tar.gz
+            gardenai-pi-installer-${{ github.ref_name }}.sha256
 
