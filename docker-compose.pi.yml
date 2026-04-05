@@ -1,0 +1,39 @@
+﻿version: "3.8"
+
+services:
+  api:
+    image: ghcr.io/victorsteiner/gardenai-backend:${IMAGE_TAG:-latest}
+    pull_policy: always
+    profiles:
+      - ""
+
+  frontend:
+    image: ghcr.io/victorsteiner/gardenai-frontend:${IMAGE_TAG:-latest}
+    pull_policy: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    profiles:
+      - ""
+
+  # Auto-update container images on the Pi
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # Check for updates once per day (86400 seconds)
+      - WATCHTOWER_POLL_INTERVAL=86400
+      # Automatically restart containers with new images
+      - WATCHTOWER_CLEANUP=true
+      # Enable HTTP API for webhook triggers
+      - WATCHTOWER_HTTP_API=true
+      - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_API_TOKEN:-}
+    ports:
+      - "6969:8080"
+    restart: unless-stopped
+    profiles:
+      - ""
+
