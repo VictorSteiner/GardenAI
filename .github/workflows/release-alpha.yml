@@ -1,0 +1,111 @@
+﻿name: Release Alpha
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release-alpha:
+    name: Create Alpha Pre-release Tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute next alpha version
+        id: semver
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git fetch --tags --force
+
+          existing_on_head=$(git tag --points-at HEAD --list 'v*-alpha.*' | head -n1 || true)
+          if [ -n "$existing_on_head" ]; then
+            echo "new_tag=$existing_on_head" >> "$GITHUB_OUTPUT"
+            echo "created=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          latest_tag=$(git tag --list 'v*' --sort=-v:refname | head -n1 || true)
+          if [ -z "$latest_tag" ]; then
+            base_major=0
+            base_minor=1
+            base_patch=0
+            range=""
+            bump="none"
+          else
+            core="${latest_tag#v}"
+            core="${core%%-*}"
+            IFS='.' read -r base_major base_minor base_patch <<< "$core"
+            range="${latest_tag}..HEAD"
+          fi
+
+          commit_text=""
+          if [ -n "$range" ]; then
+            commit_text=$(git log --pretty=format:'%s%n%b' "$range")
+          else
+            commit_text=$(git log --pretty=format:'%s%n%b' -n 20)
+          fi
+
+          if [ "${bump:-}" != "none" ]; then
+            bump="patch"
+            if echo "$commit_text" | grep -Eq 'BREAKING CHANGE|!:'; then
+              bump="major"
+            elif echo "$commit_text" | grep -Eq '^feat(\(.+\))?:'; then
+              bump="minor"
+            fi
+          fi
+
+          case "$bump" in
+            major)
+              base_major=$((base_major + 1))
+              base_minor=0
+              base_patch=0
+              ;;
+            minor)
+              base_minor=$((base_minor + 1))
+              base_patch=0
+              ;;
+            patch)
+              base_patch=$((base_patch + 1))
+              ;;
+            none)
+              ;;
+          esac
+
+          base_version="${base_major}.${base_minor}.${base_patch}"
+          latest_alpha=$(git tag --list "v${base_version}-alpha.*" --sort=-v:refname | head -n1 || true)
+
+          if [ -z "$latest_alpha" ]; then
+            alpha_number=1
+          else
+            alpha_number="${latest_alpha##*.}"
+            alpha_number=$((alpha_number + 1))
+          fi
+
+          new_tag="v${base_version}-alpha.${alpha_number}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$new_tag" -m "Release $new_tag"
+          git push origin "$new_tag"
+
+          echo "new_tag=$new_tag" >> "$GITHUB_OUTPUT"
+          echo "created=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub pre-release
+        if: steps.semver.outputs.created == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.semver.outputs.new_tag }}
+          prerelease: true
+          generate_release_notes: true
+
+
