@@ -1,0 +1,131 @@
+﻿name: Sub-issue Parent Progress
+
+on:
+  issues:
+    types: [opened, edited, closed, reopened]
+
+permissions:
+  issues: write
+
+jobs:
+  update-parent-progress:
+    name: Update Parent Progress Comment
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sync parent issue progress
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issueNumber = context.payload.issue.number;
+            const marker = '<!-- subissue-progress-bot -->';
+
+            const childQuery = `
+              query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  issue(number: $number) {
+                    number
+                    title
+                    parent {
+                      number
+                      title
+                    }
+                  }
+                }
+              }
+            `;
+
+            const childData = await github.graphql(childQuery, {
+              owner,
+              repo,
+              number: issueNumber,
+            });
+
+            const childIssue = childData?.repository?.issue;
+            const parent = childIssue?.parent;
+
+            if (!parent) {
+              core.info(`Issue #${issueNumber} has no parent. Nothing to sync.`);
+              return;
+            }
+
+            const parentQuery = `
+              query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  issue(number: $number) {
+                    number
+                    title
+                    url
+                    subIssues(first: 100) {
+                      nodes {
+                        number
+                        title
+                        url
+                        state
+                      }
+                    }
+                  }
+                }
+              }
+            `;
+
+            const parentData = await github.graphql(parentQuery, {
+              owner,
+              repo,
+              number: parent.number,
+            });
+
+            const parentIssue = parentData?.repository?.issue;
+            const subIssues = parentIssue?.subIssues?.nodes ?? [];
+
+            if (subIssues.length === 0) {
+              core.info(`Parent issue #${parent.number} has no sub-issues. Nothing to sync.`);
+              return;
+            }
+
+            const closedCount = subIssues.filter((s) => s.state === 'CLOSED').length;
+            const totalCount = subIssues.length;
+            const percent = Math.round((closedCount / totalCount) * 100);
+
+            const checklist = subIssues
+              .map((s) => `- [${s.state === 'CLOSED' ? 'x' : ' '}] #${s.number} ${s.title}`)
+              .join('\n');
+
+            const body = `${marker}
+            ## Sub-issue Progress
+
+            **Progress:** ${closedCount}/${totalCount} closed (${percent}%)
+
+            ${checklist}
+
+            _Last updated by workflow: ${context.workflow}._`;
+
+            const comments = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number: parent.number,
+              per_page: 100,
+            });
+
+            const existing = comments.data.find((c) => c.body && c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+              core.info(`Updated progress comment on parent issue #${parent.number}.`);
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: parent.number,
+                body,
+              });
+              core.info(`Created progress comment on parent issue #${parent.number}.`);
+            }
+
