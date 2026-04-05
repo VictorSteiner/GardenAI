@@ -13,11 +13,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\HomeAssistant.Application\HomeAssistant.Application.csproj" />
-      <ProjectReference Include="..\HomeAssistant.Infrastructure.Messaging\HomeAssistant.Infrastructure.Messaging.csproj" />
-      <ProjectReference Include="..\HomeAssistant.Infrastructure.Persistence\HomeAssistant.Infrastructure.Persistence.csproj" />
-      <ProjectReference Include="..\HomeAssistant.Infrastructure.Sensors\HomeAssistant.Infrastructure.Sensors.csproj" />
-      <ProjectReference Include="..\HomeAssistant.Integrations.OpenMeteo\HomeAssistant.Integrations.OpenMeteo.csproj" />
-      <ProjectReference Include="..\HomeAssistant.Infrastructure.HomeAssistant\HomeAssistant.Infrastructure.HomeAssistant.csproj" />
+      <ProjectReference Include="..\HomeAssistant.Composition\HomeAssistant.Composition.csproj" />
     </ItemGroup>
 
 </Project>

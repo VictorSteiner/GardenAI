@@ -2,9 +2,9 @@
 using System.Text.Json;
 using HomeAssistant.Domain.SensorReadings.Abstractions;
 using HomeAssistant.Domain.SensorReadings.Entities;
-using HomeAssistant.Infrastructure.Messaging.Messaging.Abstractions;
-using HomeAssistant.Integrations.OpenMeteo.Forecast.Abstractions;
-using HomeAssistant.Integrations.OpenMeteo.Forecast.Contracts;
+using HomeAssistant.Application.Messaging.Abstractions;
+using HomeAssistant.Application.Weather.Abstractions;
+using HomeAssistant.Application.Weather.Contracts;
 using HomeAssistant.Presentation.Chat;
 using HomeAssistant.Presentation.Chat.Services;
 using HomeAssistant.Presentation.GardenAdvisor.Abstractions;

@@ -16,6 +16,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeAssistant.Infrastructur
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeAssistant.Infrastructure.HomeAssistant", "HomeAssistant.Infrastructure.HomeAssistant\HomeAssistant.Infrastructure.HomeAssistant.csproj", "{A41755D6-D6BF-40F6-862F-D0836B39D1EF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeAssistant.Infrastructure.Composition", "HomeAssistant.Infrastructure.Composition\HomeAssistant.Infrastructure.Composition.csproj", "{9CD35C7F-069D-4D0D-A95F-C02BD917BA38}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeAssistant.Composition", "HomeAssistant.Composition\HomeAssistant.Composition.csproj", "{FAA7B757-0C68-4ACA-87E0-E20F30D2DD47}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -122,6 +126,30 @@ Global
 		{A41755D6-D6BF-40F6-862F-D0836B39D1EF}.Release|x64.Build.0 = Release|Any CPU
 		{A41755D6-D6BF-40F6-862F-D0836B39D1EF}.Release|x86.ActiveCfg = Release|Any CPU
 		{A41755D6-D6BF-40F6-862F-D0836B39D1EF}.Release|x86.Build.0 = Release|Any CPU
+		{9CD35C7F-069D-4D0D-A95F-C02BD917BA38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CD35C7F-069D-4D0D-A95F-C02BD917BA38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CD35C7F-069D-4D0D-A95F-C02BD917BA38}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9CD35C7F-069D-4D0D-A95F-C02BD917BA38}.Debug|x64.Build.0 = Debug|Any CPU
+		{9CD35C7F-069D-4D0D-A95F-C02BD917BA38}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9CD35C7F-069D-4D0D-A95F-C02BD917BA38}.Debug|x86.Build.0 = Debug|Any CPU
+		{9CD35C7F-069D-4D0D-A95F-C02BD917BA38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CD35C7F-069D-4D0D-A95F-C02BD917BA38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CD35C7F-069D-4D0D-A95F-C02BD917BA38}.Release|x64.ActiveCfg = Release|Any CPU
+		{9CD35C7F-069D-4D0D-A95F-C02BD917BA38}.Release|x64.Build.0 = Release|Any CPU
+		{9CD35C7F-069D-4D0D-A95F-C02BD917BA38}.Release|x86.ActiveCfg = Release|Any CPU
+		{9CD35C7F-069D-4D0D-A95F-C02BD917BA38}.Release|x86.Build.0 = Release|Any CPU
+		{FAA7B757-0C68-4ACA-87E0-E20F30D2DD47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FAA7B757-0C68-4ACA-87E0-E20F30D2DD47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FAA7B757-0C68-4ACA-87E0-E20F30D2DD47}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FAA7B757-0C68-4ACA-87E0-E20F30D2DD47}.Debug|x64.Build.0 = Debug|Any CPU
+		{FAA7B757-0C68-4ACA-87E0-E20F30D2DD47}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FAA7B757-0C68-4ACA-87E0-E20F30D2DD47}.Debug|x86.Build.0 = Debug|Any CPU
+		{FAA7B757-0C68-4ACA-87E0-E20F30D2DD47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FAA7B757-0C68-4ACA-87E0-E20F30D2DD47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FAA7B757-0C68-4ACA-87E0-E20F30D2DD47}.Release|x64.ActiveCfg = Release|Any CPU
+		{FAA7B757-0C68-4ACA-87E0-E20F30D2DD47}.Release|x64.Build.0 = Release|Any CPU
+		{FAA7B757-0C68-4ACA-87E0-E20F30D2DD47}.Release|x86.ActiveCfg = Release|Any CPU
+		{FAA7B757-0C68-4ACA-87E0-E20F30D2DD47}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

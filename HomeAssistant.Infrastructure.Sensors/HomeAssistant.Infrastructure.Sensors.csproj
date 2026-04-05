@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="..\HomeAssistant.Application\HomeAssistant.Application.csproj" />
     <ProjectReference Include="..\HomeAssistant.Domain\HomeAssistant.Domain.csproj" />
-    <ProjectReference Include="..\HomeAssistant.Infrastructure.Messaging\HomeAssistant.Infrastructure.Messaging.csproj" />
   </ItemGroup>
 
   <ItemGroup>

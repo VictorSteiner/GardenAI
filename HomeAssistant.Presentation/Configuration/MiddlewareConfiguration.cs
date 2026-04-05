@@ -1,4 +1,4 @@
-﻿using HomeAssistant.Infrastructure.Messaging.Messaging.Abstractions;
+﻿using HomeAssistant.Application.Messaging.Abstractions;
 using HomeAssistant.Presentation.GardenAdvisor.RouteBuilders;
 using Scalar.AspNetCore;
 
@@ -55,4 +55,3 @@ internal static class MiddlewareConfiguration
         return app;
     }
 }
-

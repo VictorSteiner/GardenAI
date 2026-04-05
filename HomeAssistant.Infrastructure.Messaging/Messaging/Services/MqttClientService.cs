@@ -1,11 +1,12 @@
-﻿using HomeAssistant.Infrastructure.Messaging.Configuration;
-using HomeAssistant.Infrastructure.Messaging.Messaging.Abstractions;
+﻿using HomeAssistant.Application.Messaging.Abstractions;
+using HomeAssistant.Application.Messaging.Configuration;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Protocol;
 using System.Diagnostics.Metrics;
-using AppMqttClient = HomeAssistant.Infrastructure.Messaging.Messaging.Abstractions.IMqttClient;
+using AppMqttClient = HomeAssistant.Application.Messaging.Abstractions.IMqttClient;
+using AppMqttOptions = HomeAssistant.Application.Messaging.Configuration.MqttClientOptions;
 using NetMqttClient = MQTTnet.Client.IMqttClient;
 
 namespace HomeAssistant.Infrastructure.Messaging.Messaging.Services;
@@ -16,7 +17,7 @@ namespace HomeAssistant.Infrastructure.Messaging.Messaging.Services;
 /// </summary>
 public sealed class MqttClientService : AppMqttClient, IAsyncDisposable
 {
-    private readonly HomeAssistant.Infrastructure.Messaging.Configuration.MqttClientOptions _options;
+    private readonly AppMqttOptions _options;
     private readonly ILogger<MqttClientService> _logger;
     private NetMqttClient? _client;
     private int _reconnectAttempts;
@@ -35,7 +36,7 @@ public sealed class MqttClientService : AppMqttClient, IAsyncDisposable
     /// <summary>Initialises the MQTT client service.</summary>
     /// <param name="options">MQTT configuration options.</param>
     /// <param name="logger">Logger instance.</param>
-    public MqttClientService(HomeAssistant.Infrastructure.Messaging.Configuration.MqttClientOptions options, ILogger<MqttClientService> logger)
+    public MqttClientService(AppMqttOptions options, ILogger<MqttClientService> logger)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));

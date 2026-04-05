@@ -1,7 +1,7 @@
-﻿using HomeAssistant.Domain.SensorReadings.Abstractions;
+﻿using HomeAssistant.Application.Messaging.Abstractions;
+using HomeAssistant.Application.Messaging.Configuration;
+using HomeAssistant.Domain.SensorReadings.Abstractions;
 using HomeAssistant.Domain.SensorReadings.Entities;
-using HomeAssistant.Infrastructure.Messaging.Configuration;
-using HomeAssistant.Infrastructure.Messaging.Messaging.Abstractions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
@@ -161,4 +161,3 @@ public sealed class Zigbee2MqttSensorProvider : ISensorProvider, IAsyncDisposabl
         await ValueTask.CompletedTask;
     }
 }
-

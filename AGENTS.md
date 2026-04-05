@@ -208,6 +208,7 @@ dotnet ef database update          --project HomeAssistant.Infrastructure.Persis
 - **Repository Pattern** – all data access behind interfaces defined in `HomeAssistant.Domain`; implemented in `HomeAssistant.Infrastructure.Persistence`.
 - **Mock-first** – register `MockSensorProvider : ISensorProvider` in Development; swap for `Zigbee2MqttSensorProvider` in Production via environment check in `Program.cs`.
 - **Dependency Injection throughout** – no `new ConcreteService()` except in tests or factory methods.
+- **Composition adapter exception** – `HomeAssistant.Presentation` references only `HomeAssistant.Application` plus the infrastructure composition adapter project; concrete infra/integration registrations live in that adapter so Presentation code stays free of `HomeAssistant.Infrastructure.*` usings.
 - **`record` types for DTOs/responses** – defined in `HomeAssistant.Application` or near their endpoint; match TypeScript interface field-for-field.
 - **`Nullable` enabled** – all code must be null-safe; use `?` annotations and guard clauses.
 - **Async/Await** – no `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()`. All async methods accept `CancellationToken ct`.

@@ -2,9 +2,9 @@
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using HomeAssistant.Integrations.OpenMeteo.Forecast.Abstractions;
-using HomeAssistant.Integrations.OpenMeteo.Forecast.Configuration;
-using HomeAssistant.Integrations.OpenMeteo.Forecast.Contracts;
+using HomeAssistant.Application.Weather.Abstractions;
+using HomeAssistant.Application.Weather.Configuration;
+using HomeAssistant.Application.Weather.Contracts;
 using HomeAssistant.Integrations.OpenMeteo.Forecast.Exceptions;
 
 namespace HomeAssistant.Integrations.OpenMeteo.Forecast.Clients;

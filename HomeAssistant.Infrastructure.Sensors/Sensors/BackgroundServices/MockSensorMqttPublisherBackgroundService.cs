@@ -1,5 +1,5 @@
-﻿using HomeAssistant.Domain.SensorReadings.Abstractions;
-using HomeAssistant.Infrastructure.Messaging.Configuration;
+﻿using HomeAssistant.Application.Messaging.Configuration;
+using HomeAssistant.Domain.SensorReadings.Abstractions;
 using HomeAssistant.Infrastructure.Sensors.Sensors.Providers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

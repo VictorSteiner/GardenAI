@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics.Metrics;
 using System.Text;
 using System.Text.Json;
+using HomeAssistant.Application.Messaging.Abstractions;
 using HomeAssistant.Domain.PotConfigurations.Abstractions;
-using HomeAssistant.Infrastructure.Messaging.Messaging.Abstractions;
 using HomeAssistant.Presentation.Chat;
 using HomeAssistant.Presentation.GardenAdvisor.Abstractions;
 using HomeAssistant.Presentation.GardenAdvisor.Configuration;

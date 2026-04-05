@@ -1,18 +1,12 @@
-﻿using HomeAssistant.Infrastructure.Messaging.Configuration;
-using HomeAssistant.Infrastructure.Messaging.Messaging.Abstractions;
-using HomeAssistant.Infrastructure.Messaging.Messaging.Services;
-using HomeAssistant.Integrations.OpenMeteo.Forecast.Abstractions;
-using HomeAssistant.Integrations.OpenMeteo.Forecast.Clients;
-using HomeAssistant.Integrations.OpenMeteo.Forecast.Configuration;
-using HomeAssistant.Presentation.Chat;
+﻿using HomeAssistant.Presentation.Chat;
 using HomeAssistant.Presentation.Chat.Services;
 
 namespace HomeAssistant.Presentation.Configuration;
 
-/// <summary>Extension methods for external HTTP client and messaging configuration.</summary>
+/// <summary>Extension methods for presentation-owned external client configuration.</summary>
 internal static class ExternalClientsConfiguration
 {
-    /// <summary>Registers MQTT client, Open-Meteo forecast client, and Ollama chat assistant.</summary>
+    /// <summary>Registers the Ollama-backed chat assistant client.</summary>
     internal static IServiceCollection AddExternalClients(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -20,23 +14,6 @@ internal static class ExternalClientsConfiguration
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        // MQTT Client
-        var mqttOptions = new MqttClientOptions();
-        configuration.GetSection("Mqtt").Bind(mqttOptions);
-        services.AddSingleton(mqttOptions);
-        services.AddSingleton<IMqttClient, MqttClientService>();
-
-        // Open-Meteo Forecast Client
-        var openMeteoOptions = new OpenMeteoClientOptions();
-        configuration.GetSection("OpenMeteo").Bind(openMeteoOptions);
-        services.AddSingleton(openMeteoOptions);
-        services.AddHttpClient<IOpenMeteoForecastClient, OpenMeteoForecastClient>((_, client) =>
-        {
-            client.BaseAddress = new Uri(openMeteoOptions.BaseUrl, UriKind.Absolute);
-            client.Timeout = TimeSpan.FromSeconds(20);
-        });
-
-        // Chat Assistant (Ollama)
         services.AddHttpClient<IChatAssistant, OllamaChatAssistant>((sp, client) =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
@@ -48,4 +25,3 @@ internal static class ExternalClientsConfiguration
         return services;
     }
 }
-

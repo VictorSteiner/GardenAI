@@ -1,9 +1,9 @@
-﻿using HomeAssistant.Domain.PotConfigurations.Abstractions;
+﻿using HomeAssistant.Application.Messaging.Abstractions;
+using HomeAssistant.Application.Messaging.Configuration;
+using HomeAssistant.Domain.PotConfigurations.Abstractions;
 using HomeAssistant.Domain.PotConfigurations.Entities;
 using HomeAssistant.Domain.SensorReadings.Abstractions;
 using HomeAssistant.Domain.SensorReadings.Entities;
-using HomeAssistant.Infrastructure.Messaging.Configuration;
-using HomeAssistant.Infrastructure.Messaging.Messaging.Abstractions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;

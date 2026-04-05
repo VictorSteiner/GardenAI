@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HomeAssistant.Application\HomeAssistant.Application.csproj" />
+    <ProjectReference Include="..\HomeAssistant.Infrastructure.Composition\HomeAssistant.Infrastructure.Composition.csproj" />
   </ItemGroup>
 
 </Project>
