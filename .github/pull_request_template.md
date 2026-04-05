@@ -1,4 +1,13 @@
-﻿## What changed
+﻿## Related issue
+
+<!-- Required: use one of these formats -->
+<!-- Closes #123 -->
+<!-- Fixes #123 -->
+<!-- Resolves #123 -->
+
+- Closes #
+
+## What changed
 
 - 
 
@@ -8,6 +17,7 @@
 
 ## Checklist
 
+- [ ] This PR links to an issue using `Closes #<id>`, `Fixes #<id>`, or `Resolves #<id>`
 - [ ] PR title follows Conventional Commits: `type(scope): description`
 - [ ] I ran relevant local checks (build/tests)
 - [ ] I updated docs/config where needed
