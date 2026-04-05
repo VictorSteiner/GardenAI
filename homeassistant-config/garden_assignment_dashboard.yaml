@@ -1,0 +1,148 @@
+﻿title: Garden AI
+views:
+
+  # ══════════════════════════════════════════════════════════════════════════
+  #  TAB 1 – Garden Planner Chat
+  # ══════════════════════════════════════════════════════════════════════════
+  - title: Garden Planner
+    path: garden-planner
+    icon: mdi:robot
+    panel: true
+    cards:
+      - type: custom:garden-planner-card
+        title: Garden Planner
+
+  # ══════════════════════════════════════════════════════════════════════════
+  #  TAB 2 – Overview / Quick actions
+  # ══════════════════════════════════════════════════════════════════════════
+  - title: Overview
+    path: overview
+    icon: mdi:view-dashboard
+    cards:
+      - type: entities
+        title: Quick Actions
+        show_header_toggle: false
+        entities:
+          - entity: script.trigger_garden_advice_now
+            name: Trigger Garden Advice
+          - entity: sensor.garden_advice_summary
+            name: Latest Garden Advice Summary
+
+  # ══════════════════════════════════════════════════════════════════════════
+  #  TAB 3 – Sensor readings
+  # ══════════════════════════════════════════════════════════════════════════
+  - title: Sensors
+    path: sensors-by-type
+    icon: mdi:thermometer-lines
+    cards:
+      - type: entities
+        title: Moisture Sensors
+        show_header_toggle: false
+        entities:
+          - entity: sensor.mock_pot_1_moisture
+            icon: mdi:water-percent
+          - entity: sensor.mock_pot_2_moisture
+            icon: mdi:water-percent
+          - entity: sensor.mock_pot_3_moisture
+            icon: mdi:water-percent
+          - entity: sensor.mock_pot_4_moisture
+            icon: mdi:water-percent
+          - entity: sensor.mock_pot_5_moisture
+            icon: mdi:water-percent
+          - entity: sensor.mock_pot_6_moisture
+            icon: mdi:water-percent
+
+      - type: entities
+        title: Temperature Sensors
+        show_header_toggle: false
+        entities:
+          - entity: sensor.mock_pot_1_temperature
+            icon: mdi:thermometer
+          - entity: sensor.mock_pot_2_temperature
+            icon: mdi:thermometer
+          - entity: sensor.mock_pot_3_temperature
+            icon: mdi:thermometer
+          - entity: sensor.mock_pot_4_temperature
+            icon: mdi:thermometer
+          - entity: sensor.mock_pot_5_temperature
+            icon: mdi:thermometer
+          - entity: sensor.mock_pot_6_temperature
+            icon: mdi:thermometer
+
+  # ══════════════════════════════════════════════════════════════════════════
+  #  TAB 4 – Sensor Config (manual assignment form)
+  # ══════════════════════════════════════════════════════════════════════════
+  - title: Sensor Config
+    path: sensor-config
+    icon: mdi:sprout
+    cards:
+      - type: markdown
+        content: |
+          ## Assign Plant to Sensor
+          1. Choose a sensor → choose room → choose plant
+          2. Seed options auto-refresh when plant changes
+          3. Click **Save Selected Sensor Assignment**
+
+      - type: entities
+        title: Assignment Form
+        show_header_toggle: false
+        entities:
+          - entity: input_select.garden_selected_sensor
+            name: Sensor
+          - entity: input_select.garden_room_area_id
+            name: Room
+          - entity: input_select.garden_plant_name
+            name: Plant Name
+          - entity: script.refresh_seed_options_for_selected_plant
+            name: Refresh Seed Options for Plant
+          - entity: input_select.garden_seed_name
+            name: Seed Name
+          - entity: input_text.garden_new_seed_name
+            name: Add New Seed Option
+          - entity: script.add_new_seed_option
+            name: Add Seed Option
+          - entity: input_select.garden_seed_status
+            name: Seed Status
+          - entity: input_datetime.garden_planted_date
+            name: Planted Date
+          - entity: input_boolean.garden_use_expected_harvest
+            name: Use Expected Harvest Date
+          - entity: input_datetime.garden_expected_harvest_date
+            name: Expected Harvest Date
+          - entity: input_text.garden_assignment_notes
+            name: Notes (optional)
+          - entity: script.save_selected_sensor_assignment
+            name: Save Selected Sensor Assignment
+          - entity: script.clear_selected_sensor_form
+            name: Clear Form
+
+  # ══════════════════════════════════════════════════════════════════════════
+  #  TAB 5 – Plant & Seed option management
+  # ══════════════════════════════════════════════════════════════════════════
+  - title: Plants/Pots
+    path: plants-pots
+    icon: mdi:leaf
+    cards:
+      - type: entities
+        title: Plant/Seed Option Management
+        show_header_toggle: false
+        entities:
+          - entity: input_text.garden_new_plant_name
+            name: New Plant Option
+          - entity: script.add_new_plant_option
+            name: Add Plant Option
+
+      - type: entities
+        title: Current Selection + Metadata
+        show_header_toggle: false
+        entities:
+          - input_select.garden_selected_sensor
+          - input_select.garden_room_area_id
+          - input_select.garden_seed_status
+          - input_select.garden_plant_name
+          - input_select.garden_seed_name
+          - input_datetime.garden_planted_date
+          - input_boolean.garden_use_expected_harvest
+          - input_datetime.garden_expected_harvest_date
+          - input_text.garden_assignment_notes
+

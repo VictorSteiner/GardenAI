@@ -1,0 +1,47 @@
+﻿# Home Assistant package: Garden Planner Chat
+#
+# This package exposes:
+# - MQTT sensors for planner reply, actions, and full history
+# - a REST command the custom Lovelace card calls directly
+#
+# The visual chat UI now lives in the TypeScript custom card:
+#   custom:garden-planner-card
+
+mqtt:
+  sensor:
+    - name: "Garden Planner Reply"
+      unique_id: "garden_planner_reply"
+      state_topic: "homeassistant/garden/planner/response"
+      value_template: >-
+        {{ (value_json.reply if value_json is defined else value) | truncate(255, true, '…') }}
+      json_attributes_topic: "homeassistant/garden/planner/response"
+      json_attributes_template: >-
+        {{ {
+            "full_reply": value_json.reply,
+            "actions_executed": value_json.actionsExecuted,
+            "generated_at_utc": value_json.generatedAtUtc
+          } | tojson }}
+
+    - name: "Garden Planner Actions"
+      unique_id: "garden_planner_actions"
+      state_topic: "homeassistant/garden/planner/response"
+      value_template: >-
+        {% set acts = value_json.actionsExecuted if value_json is defined else [] %}
+        {% if acts | length == 0 %}No actions{% else %}{{ acts | join(' | ') | truncate(255, true, '…') }}{% endif %}
+
+    - name: "Garden Planner History"
+      unique_id: "garden_planner_history"
+      state_topic: "homeassistant/garden/planner/history"
+      value_template: "{{ value_json.messageCount | default(0) }}"
+      json_attributes_topic: "homeassistant/garden/planner/history"
+      json_attributes_template: >-
+        {{ {"messages": value_json.messages} | tojson }}
+
+rest_command:
+  send_garden_planner_chat:
+    # Replace host if needed (e.g. http://192.168.1.10:5064) when host.docker.internal is unavailable.
+    url: "http://host.docker.internal:5064/api/garden/planner/chat"
+    method: post
+    timeout: 120
+    content_type: "application/json"
+    payload: '{"message": "{{ message }}"}'

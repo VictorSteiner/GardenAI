@@ -1,0 +1,68 @@
+﻿services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: ha-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-homeassistant}
+      POSTGRES_USER: ${POSTGRES_USER:-ha_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ha_user} -d ${POSTGRES_DB:-homeassistant}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: ha-mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_logs:/mosquitto/log
+    healthcheck:
+      test: ["CMD", "mosquitto_pub", "-h", "localhost", "-t", "healthcheck", "-m", "ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ha-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:11434/api/tags || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  ollama-pull:
+    image: ollama/ollama:latest
+    profiles: ["init"]
+    depends_on:
+      ollama:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c", "ollama pull ${OLLAMA_MODEL:-llama3.2:3b}"]
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+
+volumes:
+  postgres_data:
+  mosquitto_data:
+  mosquitto_logs:
+  ollama_data:
+

@@ -1,0 +1,11 @@
+﻿<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Disable route builder source generator: references IApiEndpointMetadata not present in
+         Microsoft.AspNetCore.Http.Abstractions at SDK 10.0.201 / runtime 10.0.5 -->
+    <EnableRequestDelegateGenerator>false</EnableRequestDelegateGenerator>
+  </PropertyGroup>
+</Project>
+

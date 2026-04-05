@@ -1,0 +1,58 @@
+﻿using HomeAssistant.Infrastructure.Messaging.Messaging.Abstractions;
+using HomeAssistant.Presentation.GardenAdvisor.RouteBuilders;
+using Scalar.AspNetCore;
+
+namespace HomeAssistant.Presentation.Configuration;
+
+/// <summary>Extension methods for middleware and routing configuration.</summary>
+internal static class MiddlewareConfiguration
+{
+    /// <summary>Configures middleware pipeline and initializes external connections.</summary>
+    internal static async Task ConfigureMiddlewareAsync(this WebApplication app)
+    {
+        ArgumentNullException.ThrowIfNull(app);
+
+        // Initialize MQTT connection
+        try
+        {
+            var mqttClient = app.Services.GetRequiredService<IMqttClient>();
+            await mqttClient.ConnectAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            app.Logger.LogError(ex, "Failed to initialize MQTT client on startup. Continuing without MQTT.");
+            // Don't fail startup if MQTT is unavailable; allow graceful degradation
+        }
+    }
+
+    /// <summary>Configures OpenAPI documentation in development and sets up middleware pipeline.</summary>
+    internal static IApplicationBuilder ConfigurePipeline(this WebApplication app)
+    {
+        ArgumentNullException.ThrowIfNull(app);
+
+        // OpenAPI in development only
+        if (app.Environment.IsDevelopment())
+        {
+            app.MapOpenApi();
+            // DisableDefaultFonts: avoids loading Inter/JetBrains Mono from Scalar's CDN (important for Pi)
+            app.MapScalarApiReference(options => options
+                .WithTitle("HomeAssistant API")
+                .DisableDefaultFonts());
+        }
+
+        app.UseHttpsRedirection();
+
+        return app;
+    }
+
+    /// <summary>Maps all application routes.</summary>
+    internal static IApplicationBuilder MapRoutes(this WebApplication app)
+    {
+        ArgumentNullException.ThrowIfNull(app);
+
+        app.MapGardenAdvisorRoutes();
+
+        return app;
+    }
+}
+

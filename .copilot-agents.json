@@ -1,0 +1,5 @@
+﻿{
+  "$schema": "https://raw.githubusercontent.com/github/copilot-docs/main/docs/agents/schema.json",
+  "agents_directory": ".github/agents"
+}
+

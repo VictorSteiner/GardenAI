@@ -1,0 +1,56 @@
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+.idea/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+TestResults/
+artifacts/
+publish/
+logs/
+
+# Databases
+*.db
+*.db-shm
+*.db-wal
+
+# Secrets
+.env
+.env.*
+!.env.example
+secrets.yaml
+
+# Home Assistant runtime state (auth tokens, device registry, etc.)
+homeassistant-config/.storage/
+homeassistant-config/.cache/
+homeassistant-config/home-assistant.log*
+homeassistant-config/home-assistant_v2.db*
+homeassistant-config/tts/
+homeassistant-config/.ha_run.lock
+homeassistant-config/.HA_VERSION
+
+# Home Assistant auto-generated boilerplate (not custom, HA manages these)
+homeassistant-config/automations.yaml
+homeassistant-config/scenes.yaml
+homeassistant-config/scripts.yaml
+homeassistant-config/blueprints/automation/homeassistant/
+homeassistant-config/blueprints/script/homeassistant/
+
+# appsettings with real credentials (use environment variables instead)
+HomeAssistant.Presentation/appsettings.Development.json
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+tsconfig.tsbuildinfo
+
+# .NET
+*.nupkg
+*.snupkg
+build.log
