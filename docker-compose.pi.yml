@@ -24,15 +24,10 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      # Check for updates once per day (86400 seconds)
-      - WATCHTOWER_POLL_INTERVAL=86400
+      # Check for updates every 10 minutes (600 seconds)
+      - WATCHTOWER_POLL_INTERVAL=600
       # Automatically restart containers with new images
       - WATCHTOWER_CLEANUP=true
-      # Enable HTTP API for webhook triggers
-      - WATCHTOWER_HTTP_API=true
-      - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_API_TOKEN:-}
-    ports:
-      - "6969:8080"
     restart: unless-stopped
     profiles:
       - ""

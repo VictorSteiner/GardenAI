@@ -14,14 +14,13 @@ GitHub Actions (build-push-images.yml)
     ├─ Build frontend (arm64)
     └─ Push to GHCR (GitHub Container Registry)
     ↓
-GitHub Actions (trigger-watchtower-deploy.yml)
-    └─ POST webhook to Pi:6969
+Watchtower on Pi (autonomous)
+    └─ Polls GHCR every 10 minutes
     ↓
-Watchtower on Pi
-    ├─ Receives webhook → immediate pull & restart
-    └─ Daily poll (fallback if webhook fails)
+New image detected → pulls & restarts
     ↓
 New containers running on Pi ✅
+(Update time: ~10-15 minutes after release)
 ```
 
 ## First-Time Setup (Manual, One-Time)
@@ -72,24 +71,22 @@ Done! Watchtower is now running and will auto-update on new releases.
 
 ## Automated Updates
 
-### On-Demand (Release Trigger)
+Watchtower automatically polls GHCR every 10 minutes. When a new image is available:
 
-When you create a GitHub **release**:
+1. Watchtower detects the new image tag
+2. Pulls the new backend and frontend images
+3. Stops old containers
+4. Starts new containers with fresh images
+5. Updates complete in ~2-3 minutes ✅
 
-1. GitHub Actions builds Docker images (`backend:v0.1.0-alpha.1`, `frontend:v0.1.0-alpha.1`)
-2. Images pushed to GHCR
-3. `trigger-watchtower-deploy.yml` fires
-4. Sends webhook to `http://raspberrypi.local:6969/v1/update`
-5. Watchtower immediately pulls new images & restarts containers
-6. Update complete in ~2-5 minutes ✅
+**Update latency:** Release created → ~10-15 minutes until all Pis updated (10 min poll interval + 2-3 min pull/restart)
 
-### Fallback (Daily Poll)
+### How It Works (No Network Exposure Required)
 
-If the webhook fails (Pi offline, firewall issue):
-- Watchtower polls GHCR **once per day** (86400 seconds)
-- Detects new image tags
-- Pulls and restarts automatically
-- Ensures Pi always eventually updates
+- **Pi initiates connection:** Watchtower polls GHCR outbound
+- **GitHub never reaches Pi:** No port-forwarding, no firewall rules needed
+- **Multi-Pi support:** Each Pi independently polls and updates
+- **Resource overhead:** Negligible (~0.1% CPU, minimal bandwidth per check)
 
 ## Secrets & Authentication
 
@@ -97,15 +94,6 @@ If the webhook fails (Pi offline, firewall issue):
 
 Uses `${{ secrets.GITHUB_TOKEN }}` (auto-provided by GitHub, no setup needed).
 
-### GitHub Actions → Watchtower Webhook
-
-Uses repository secret `PI_HOSTNAME` (set in Settings → Secrets):
-- **Name:** `PI_HOSTNAME`
-- **Value:** `raspberrypi.local` (or static Pi IP)
-
-If Pi is not on local network, you'll need to set up:
-- Port forwarding in your router (forward 6969 externally)
-- Then set `PI_HOSTNAME` to your public IP or dynamic DNS
 
 ### Pi → GHCR (Pull Authentication)
 
@@ -160,15 +148,19 @@ docker compose ps
 ```
 
 ### Manual Trigger Test (for debugging)
+
+To manually check if Watchtower picks up updates:
 ```bash
-curl -X POST http://raspberrypi.local:6969/v1/update
+ssh pi@raspberrypi.local
+docker compose logs -f watchtower
+# Watch for "Pulling" messages when a new image is released
 ```
 
 ## Troubleshooting
 
-### Watchtower webhook timeout
-- **Cause:** Pi not reachable on local network
-- **Fix:** Verify Pi IP, check firewall, or wait for daily poll
+### Watchtower not detecting updates
+- **Cause:** Watchtower not polling or image not pushed yet
+- **Fix:** Check logs: `docker compose logs -f watchtower`
 
 ### Pull fails (auth error)
 - **Cause:** Docker not logged into GHCR
