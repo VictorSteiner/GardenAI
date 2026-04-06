@@ -155,7 +155,12 @@ HomeAssistant.Presentation/<Domain>/
     <Domain>RouteBuilder.cs
   Endpoints/
     <EndpointName>/
+      Contracts/
+        <EndpointName>Request.cs
+        <EndpointName>Response.cs
       <EndpointName>Endpoint.cs
+  Contracts/
+    <SharedContract>.cs   # only when reused by multiple endpoints
 ```
 
 Rules:
@@ -163,6 +168,8 @@ Rules:
 - Use one folder per endpoint.
 - `<Domain>RouteBuilder` gathers endpoint mappings for that domain/feature.
 - `Program.cs` should remain the composition root and delegate route mapping to route builders.
+- Endpoint-local request/response contracts belong under the owning endpoint folder.
+- Keep domain-level `Contracts/` files only for models reused across several endpoints.
 
 ---
 
