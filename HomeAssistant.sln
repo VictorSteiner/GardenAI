@@ -14,7 +14,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeAssistant.Integrations.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeAssistant.Infrastructure.Messaging", "HomeAssistant.Infrastructure.Messaging\HomeAssistant.Infrastructure.Messaging.csproj", "{8C7E9F42-C3B8-4D2E-9A5F-1E8B2C3D4A5F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeAssistant.Infrastructure.HomeAssistant", "HomeAssistant.Infrastructure.HomeAssistant\HomeAssistant.Infrastructure.HomeAssistant.csproj", "{A41755D6-D6BF-40F6-862F-D0836B39D1EF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeAssistant.Integrations.HomeAssistant", "HomeAssistant.Integrations.HomeAssistant\HomeAssistant.Integrations.HomeAssistant.csproj", "{A41755D6-D6BF-40F6-862F-D0836B39D1EF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeAssistant.Infrastructure.Composition", "HomeAssistant.Infrastructure.Composition\HomeAssistant.Infrastructure.Composition.csproj", "{9CD35C7F-069D-4D0D-A95F-C02BD917BA38}"
 EndProject

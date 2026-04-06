@@ -1,4 +1,4 @@
-﻿namespace HomeAssistant.Infrastructure.HomeAssistant.Protocol.Contracts;
+﻿namespace HomeAssistant.Integrations.HomeAssistant.Protocol.Contracts;
 
 /// <summary>Describes a single Semantic Kernel tool parameter exposed to the garden planner.</summary>
 public sealed record HomeAssistantProtocolToolParameter(
@@ -6,4 +6,5 @@ public sealed record HomeAssistantProtocolToolParameter(
     string Type,
     string Description,
     bool IsRequired);
+
 

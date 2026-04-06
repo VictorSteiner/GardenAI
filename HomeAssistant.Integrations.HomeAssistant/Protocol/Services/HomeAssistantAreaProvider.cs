@@ -1,9 +1,9 @@
 ﻿using System.Text.Json;
-using HomeAssistant.Infrastructure.HomeAssistant.Protocol.Abstractions;
-using HomeAssistant.Infrastructure.HomeAssistant.Protocol.Contracts;
+using HomeAssistant.Integrations.HomeAssistant.Protocol.Abstractions;
+using HomeAssistant.Integrations.HomeAssistant.Protocol.Contracts;
 using Microsoft.Extensions.Logging;
 
-namespace HomeAssistant.Infrastructure.HomeAssistant.Protocol.Services;
+namespace HomeAssistant.Integrations.HomeAssistant.Protocol.Services;
 
 /// <summary>Reads Home Assistant area registry data from the configured Home Assistant config path.</summary>
 public sealed class HomeAssistantAreaProvider : IHomeAssistantAreaProvider
@@ -78,4 +78,5 @@ public sealed class HomeAssistantAreaProvider : IHomeAssistantAreaProvider
         }
     }
 }
+
 
