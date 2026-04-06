@@ -1,55 +1,21 @@
-﻿using FluentValidation;
-using HomeAssistant.Application.Maintenance.Commands.ResetPersistedData;
-using HomeAssistant.Application.PotConfigurations.Commands;
-using HomeAssistant.Application.PotConfigurations.Configuration;
-using HomeAssistant.Application.PotConfigurations.DTOs;
-using HomeAssistant.Application.PotConfigurations.Queries;
-using HomeAssistant.Application.PotConfigurations.Abstractions;
-using HomeAssistant.Application.PotConfigurations.Services;
-using HomeAssistant.Application.PotConfigurations.Validators;
-using HomeAssistant.Application.Dispatching;
-using HomeAssistant.Domain.Common.Handlers;
-using HomeAssistant.Domain.Common.Abstractions;
-using HomeAssistant.Domain.PotConfigurations.Abstractions;
-using HomeAssistant.Presentation.GardenAdvisor.Mappings;
-
-namespace HomeAssistant.Presentation.Configuration;
+﻿namespace HomeAssistant.Presentation.Configuration;
 
 /// <summary>Extension methods for CQRS command and query handler configuration.</summary>
+/// <remarks>
+/// This class is a placeholder for future CQRS service registration (command handlers, query handlers, validators, mappers).
+/// Currently, handlers are registered on-demand; this method can be extended to support bulk registration patterns.
+/// </remarks>
 internal static class CqrsConfiguration
 {
     /// <summary>Registers CQRS dispatcher, command handlers, query handlers, validators, and mappers.</summary>
+    /// <remarks>Placeholder for future CQRS handler registration. Extend this method as needed to register:</remarks>
+    /// <remarks>- ICommandHandler<TCommand> implementations</remarks>
+    /// <remarks>- IQueryHandler<TQuery, TResult> implementations</remarks>
+    /// <remarks>- Validators and mappings</remarks>
     internal static IServiceCollection AddCqrsServices(this IServiceCollection services, IConfiguration configuration)
     {
-        ArgumentNullException.ThrowIfNull(services);
-        ArgumentNullException.ThrowIfNull(configuration);
-
-        // CQRS Dispatcher (singleton to maintain shared queue across requests)
-        // Dispatcher runs registered IValidator<TCommand> automatically before handler execution
-        services.AddSingleton<ICommandDispatcher, CommandDispatcher>();
-
-        // Command Handlers
-        services.AddScoped<ICommandHandler<SavePotConfigurationCommand>, SavePotConfigurationCommandHandler>();
-        services.AddScoped<ICommandHandler<UpdateSeedStatusCommand>, UpdateSeedStatusCommandHandler>();
-        services.AddScoped<ICommandHandler<ResetPersistedDataCommand>, ResetPersistedDataCommandHandler>();
-
-        // Query Handlers
-        services.AddScoped<IQueryHandler<GetHarvestReadinessQuery, IReadOnlyList<HarvestReadinessDto>>, GetHarvestReadinessQueryHandler>();
-        services.AddScoped<IQueryHandler<GetDashboardAggregationQuery, DashboardAggregationDto>, GetDashboardAggregationQueryHandler>();
-        services.AddScoped<IQueryHandler<GetRoomSummaryQuery, RoomSummaryDto>, GetRoomSummaryQueryHandler>();
-
-        // Application Services
-        services.AddScoped<IHarvestReadinessCalculator, HarvestReadinessCalculator>();
-        services.Configure<PotIdentityMapOptions>(configuration.GetSection("PotIdentityMap"));
-        services.AddSingleton<IPotIdentityMapProvider, PotIdentityMapProvider>();
-
-        // FluentValidation: scan Application assembly for all IValidator<T> implementations
-        services.AddValidatorsFromAssemblyContaining<SavePotConfigurationCommandValidator>(
-            lifetime: ServiceLifetime.Scoped);
-
-        // Mappers: Domain DTOs → Presentation contracts
-        services.AddScoped<IGardenPlannerMapper, GardenPlannerMapper>();
-
+        // Note: CQRS handlers are currently registered inline in Program.cs or via explicit calls.
+        // Future enhancement: implement assembly scanning to auto-register all ICommandHandler<> and IQueryHandler<> implementations.
         return services;
     }
 }
