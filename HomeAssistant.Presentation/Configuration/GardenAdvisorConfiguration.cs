@@ -9,7 +9,7 @@ namespace HomeAssistant.Presentation.Configuration;
 /// <summary>Extension methods for garden advisor and AI agent configuration.</summary>
 internal static class GardenAdvisorConfiguration
 {
-    /// <summary>Registers garden advisor services and background workers owned by the presentation layer.</summary>
+    /// <summary>Registers application-owned garden advice services plus presentation-owned planner and background components.</summary>
     internal static IServiceCollection AddGardenAdvisorServices(
         this IServiceCollection services,
         IConfiguration configuration)

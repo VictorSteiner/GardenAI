@@ -1,8 +1,9 @@
 ﻿using HomeAssistant.Application.GardenAdvisor.Abstractions;
 using HomeAssistant.Application.GardenAdvisor.Contracts.Advice;
-using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostGenerateGardenAdvice.Contracts;
+using HomeAssistant.Presentation.GardenAdvisor.GardenAdvice.Endpoints.PostGenerateGardenAdvice.Contracts;
+using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostGenerateGardenAdvice;
+namespace HomeAssistant.Presentation.GardenAdvisor.GardenAdvice.Endpoints.PostGenerateGardenAdvice;
 
 /// <summary>Maps endpoint that manually triggers new garden advice generation.</summary>
 internal static class PostGenerateGardenAdviceEndpoint
@@ -14,7 +15,7 @@ internal static class PostGenerateGardenAdviceEndpoint
 
         return group.MapPost(
                 "/generate",
-                async Task<IResult> (
+                async Task<Results<Ok<GardenAdviceResponse>, ProblemHttpResult>> (
                     GenerateGardenAdviceRequest? request,
                     IGardenAdvisorService advisorService,
                     CancellationToken ct) =>
@@ -22,11 +23,11 @@ internal static class PostGenerateGardenAdviceEndpoint
                     try
                     {
                         var result = await advisorService.GenerateAdviceAsync(request?.PublishToMqtt ?? true, ct);
-                        return Results.Ok(result);
+                        return TypedResults.Ok(result);
                     }
                     catch (Exception ex)
                     {
-                        return Results.Problem(
+                        return TypedResults.Problem(
                             detail: ex.Message,
                             title: "Garden advice generation failed",
                             statusCode: StatusCodes.Status502BadGateway);
@@ -39,3 +40,4 @@ internal static class PostGenerateGardenAdviceEndpoint
             .ProducesProblem(StatusCodes.Status502BadGateway);
     }
 }
+

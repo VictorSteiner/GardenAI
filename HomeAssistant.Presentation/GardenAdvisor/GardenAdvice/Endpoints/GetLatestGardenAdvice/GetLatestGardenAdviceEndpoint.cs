@@ -1,7 +1,8 @@
 ﻿using HomeAssistant.Application.GardenAdvisor.Abstractions;
 using HomeAssistant.Application.GardenAdvisor.Contracts.Advice;
+using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.GetLatestGardenAdvice;
+namespace HomeAssistant.Presentation.GardenAdvisor.GardenAdvice.Endpoints.GetLatestGardenAdvice;
 
 /// <summary>Maps endpoint for reading the latest generated garden advice.</summary>
 internal static class GetLatestGardenAdviceEndpoint
@@ -13,12 +14,12 @@ internal static class GetLatestGardenAdviceEndpoint
 
         return group.MapGet(
                 "/latest",
-                (IGardenAdviceStateStore stateStore) =>
+                Results<Ok<GardenAdviceResponse>, NotFound> (IGardenAdviceStateStore stateStore) =>
                 {
                     var latest = stateStore.GetLatest();
                     return latest is null
-                        ? Results.NotFound()
-                        : Results.Ok(latest);
+                        ? TypedResults.NotFound()
+                        : TypedResults.Ok(latest);
                 })
             .WithName("GetLatestGardenAdvice")
             .WithSummary("Returns the latest generated garden advice summary")
@@ -27,3 +28,4 @@ internal static class GetLatestGardenAdviceEndpoint
             .Produces(StatusCodes.Status404NotFound);
     }
 }
+
