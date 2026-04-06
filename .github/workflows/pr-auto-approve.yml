@@ -12,7 +12,6 @@ jobs:
   auto-merge:
     name: Auto-Merge on Checks Pass
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'auto-merge')
 
     steps:
       - name: Checkout
