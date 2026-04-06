@@ -1,13 +1,13 @@
 ﻿using System.ComponentModel;
 using System.Reflection;
 using System.Text.Json;
-using HomeAssistant.Infrastructure.HomeAssistant.Protocol.Abstractions;
-using HomeAssistant.Infrastructure.HomeAssistant.Protocol.Contracts;
-using HomeAssistant.Infrastructure.HomeAssistant.Protocol.Functions;
+using HomeAssistant.Integrations.HomeAssistant.Protocol.Abstractions;
+using HomeAssistant.Integrations.HomeAssistant.Protocol.Contracts;
+using HomeAssistant.Integrations.HomeAssistant.Protocol.Functions;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 
-namespace HomeAssistant.Infrastructure.HomeAssistant.Protocol.Services;
+namespace HomeAssistant.Integrations.HomeAssistant.Protocol.Services;
 
 /// <summary>Discovers Semantic Kernel attributed tool methods and exposes them to the garden planner.</summary>
 public sealed class HomeAssistantProtocolToolRegistry : IHomeAssistantProtocolToolRegistry
@@ -213,4 +213,5 @@ public sealed class HomeAssistantProtocolToolRegistry : IHomeAssistantProtocolTo
         MethodInfo Method,
         IReadOnlyList<HomeAssistantProtocolToolParameter> Parameters);
 }
+
 

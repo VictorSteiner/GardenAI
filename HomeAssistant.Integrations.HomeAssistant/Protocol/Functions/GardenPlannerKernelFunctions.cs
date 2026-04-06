@@ -9,11 +9,11 @@ using HomeAssistant.Application.PotConfigurations.Queries;
 using HomeAssistant.Domain.Common.Handlers;
 using HomeAssistant.Domain.PotConfigurations.Abstractions;
 using HomeAssistant.Domain.SensorReadings.Abstractions;
-using HomeAssistant.Infrastructure.HomeAssistant.Protocol.Abstractions;
+using HomeAssistant.Integrations.HomeAssistant.Protocol.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 
-namespace HomeAssistant.Infrastructure.HomeAssistant.Protocol.Functions;
+namespace HomeAssistant.Integrations.HomeAssistant.Protocol.Functions;
 
 /// <summary>Semantic Kernel tool methods used internally by the garden planner.</summary>
 public sealed class GardenPlannerKernelFunctions
@@ -255,4 +255,5 @@ public sealed class GardenPlannerKernelFunctions
             ? "no sensor data"
             : $"moisture {reading.SoilMoisture:0.0}%, temp {reading.TemperatureC:0.0}°C";
 }
+
 

@@ -1,6 +1,6 @@
-﻿using HomeAssistant.Infrastructure.HomeAssistant.Protocol.Contracts;
+﻿using HomeAssistant.Integrations.HomeAssistant.Protocol.Contracts;
 
-namespace HomeAssistant.Infrastructure.HomeAssistant.Protocol.Abstractions;
+namespace HomeAssistant.Integrations.HomeAssistant.Protocol.Abstractions;
 
 /// <summary>Discovers and invokes Semantic Kernel attributed protocol functions for the planner.</summary>
 public interface IHomeAssistantProtocolToolRegistry
@@ -11,4 +11,5 @@ public interface IHomeAssistantProtocolToolRegistry
     /// <summary>Invokes a registered tool by name using the supplied JSON arguments.</summary>
     Task<string> InvokeAsync(string functionName, string argumentsJson, CancellationToken ct = default);
 }
+
 

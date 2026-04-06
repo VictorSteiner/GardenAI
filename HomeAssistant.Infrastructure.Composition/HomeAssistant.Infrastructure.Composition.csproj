@@ -9,7 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\HomeAssistant.Application\HomeAssistant.Application.csproj" />
     <ProjectReference Include="..\HomeAssistant.Domain\HomeAssistant.Domain.csproj" />
-    <ProjectReference Include="..\HomeAssistant.Infrastructure.HomeAssistant\HomeAssistant.Infrastructure.HomeAssistant.csproj" />
+    <ProjectReference Include="..\HomeAssistant.Integrations.HomeAssistant\HomeAssistant.Integrations.HomeAssistant.csproj" />
     <ProjectReference Include="..\HomeAssistant.Infrastructure.Messaging\HomeAssistant.Infrastructure.Messaging.csproj" />
     <ProjectReference Include="..\HomeAssistant.Infrastructure.Persistence\HomeAssistant.Infrastructure.Persistence.csproj" />
     <ProjectReference Include="..\HomeAssistant.Infrastructure.Sensors\HomeAssistant.Infrastructure.Sensors.csproj" />
