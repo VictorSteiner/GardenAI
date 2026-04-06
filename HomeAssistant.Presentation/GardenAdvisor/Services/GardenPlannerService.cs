@@ -7,6 +7,7 @@ using HomeAssistant.Application.GardenAdvisor.Abstractions;
 using HomeAssistant.Application.GardenAdvisor.Configuration;
 using HomeAssistant.Application.GardenAdvisor.Contracts;
 using HomeAssistant.Application.Messaging.Abstractions;
+using HomeAssistant.Application.PotConfigurations.Abstractions;
 using HomeAssistant.Domain.PotConfigurations.Abstractions;
 using HomeAssistant.Presentation.GardenAdvisor.Abstractions;
 using HomeAssistant.Presentation.GardenAdvisor.Contracts;
@@ -20,23 +21,13 @@ namespace HomeAssistant.Presentation.GardenAdvisor.Services;
 /// </summary>
 public sealed class GardenPlannerService : IGardenPlannerService
 {
-    private static readonly IReadOnlyDictionary<int, Guid> PotNumberToId =
-        new Dictionary<int, Guid>
-        {
-            [1] = Guid.Parse("11111111-1111-1111-1111-111111111111"),
-            [2] = Guid.Parse("22222222-2222-2222-2222-222222222222"),
-            [3] = Guid.Parse("33333333-3333-3333-3333-333333333333"),
-            [4] = Guid.Parse("44444444-4444-4444-4444-444444444444"),
-            [5] = Guid.Parse("55555555-5555-5555-5555-555555555555"),
-            [6] = Guid.Parse("66666666-6666-6666-6666-666666666666"),
-        };
-
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNameCaseInsensitive = true,
     };
 
     private readonly IPotConfigurationRepository _potRepository;
+    private readonly IPotIdentityMapProvider _potIdentityMapProvider;
     private readonly IGardenPlannerFunctionService _functionService;
     private readonly IChatAssistant _chatAssistant;
     private readonly IMqttClient _mqttClient;
@@ -49,6 +40,7 @@ public sealed class GardenPlannerService : IGardenPlannerService
     /// <summary>Creates a new <see cref="GardenPlannerService"/>.</summary>
     public GardenPlannerService(
         IPotConfigurationRepository potRepository,
+        IPotIdentityMapProvider potIdentityMapProvider,
         IGardenPlannerFunctionService functionService,
         IChatAssistant chatAssistant,
         IMqttClient mqttClient,
@@ -57,6 +49,7 @@ public sealed class GardenPlannerService : IGardenPlannerService
         ILogger<GardenPlannerService> logger)
     {
         _potRepository = potRepository ?? throw new ArgumentNullException(nameof(potRepository));
+        _potIdentityMapProvider = potIdentityMapProvider ?? throw new ArgumentNullException(nameof(potIdentityMapProvider));
         _functionService = functionService ?? throw new ArgumentNullException(nameof(functionService));
         _chatAssistant = chatAssistant ?? throw new ArgumentNullException(nameof(chatAssistant));
         _mqttClient = mqttClient ?? throw new ArgumentNullException(nameof(mqttClient));
@@ -80,7 +73,7 @@ public sealed class GardenPlannerService : IGardenPlannerService
         _historyStore.AddMessage("user", message);
 
         var configs = await _potRepository.GetAllAsync(ct);
-        var systemPrompt = BuildSystemPrompt(configs);
+        var systemPrompt = await BuildSystemPromptAsync(configs, ct);
 
         var fullHistory = _historyStore.GetHistory();
         var priorMessages = fullHistory.Count > 0
@@ -117,9 +110,12 @@ public sealed class GardenPlannerService : IGardenPlannerService
 
     // ── System prompt ─────────────────────────────────────────────────────
 
-    private string BuildSystemPrompt(IReadOnlyList<Domain.PotConfigurations.Entities.PotConfiguration> configs)
+    private async Task<string> BuildSystemPromptAsync(
+        IReadOnlyList<Domain.PotConfigurations.Entities.PotConfiguration> configs,
+        CancellationToken ct)
     {
         var configByPot = configs.ToDictionary(c => c.PotId);
+        var map = await _potIdentityMapProvider.GetMapAsync(ct);
         var sb = new StringBuilder();
         sb.AppendLine("You are a knowledgeable garden planning assistant for a smart home system.");
         sb.AppendLine("Help the user plan plantings, suggest seeds, give care advice, and track what is growing.");
@@ -128,7 +124,7 @@ public sealed class GardenPlannerService : IGardenPlannerService
         sb.AppendLine();
         sb.AppendLine("| Pot | Plant | Seed | Status | Room |");
         sb.AppendLine("|-----|-------|------|--------|------|");
-        foreach (var (num, potId) in PotNumberToId.OrderBy(kv => kv.Key))
+        foreach (var (num, potId) in map.OrderBy(kv => kv.Key))
         {
             configByPot.TryGetValue(potId, out var cfg);
             var seed = cfg?.CurrentSeeds.FirstOrDefault(s => s.Status == "growing") ?? cfg?.CurrentSeeds.FirstOrDefault();
@@ -146,7 +142,7 @@ public sealed class GardenPlannerService : IGardenPlannerService
             "Plant a seed in a pot – saves plant/seed, room, and lifecycle status.",
             new Dictionary<string, ChatToolParameterSchema>
             {
-                ["pot_number"]  = new("integer", "Pot number 1–6."),
+                ["pot_number"]  = new("integer", "Configured pot number from PotIdentityMap."),
                 ["plant_name"]  = new("string",  "Common plant name, e.g. Tomato, Basil."),
                 ["seed_name"]   = new("string",  "Cultivar name, e.g. Moneymaker, Genovese."),
                 ["room_area_id"]= new("string",  "Room ID.", ["living_room","balcony","greenhouse"]),
@@ -160,7 +156,7 @@ public sealed class GardenPlannerService : IGardenPlannerService
             "Update the lifecycle status of the seed currently in a pot.",
             new Dictionary<string, ChatToolParameterSchema>
             {
-                ["pot_number"] = new("integer", "Pot number 1–6."),
+                ["pot_number"] = new("integer", "Configured pot number from PotIdentityMap."),
                 ["new_status"] = new("string",  "New status.", ["growing","mature","harvested","removed"]),
             },
             ["pot_number","new_status"]),
@@ -169,19 +165,19 @@ public sealed class GardenPlannerService : IGardenPlannerService
             "Get the current planting config and latest sensor reading for a pot.",
             new Dictionary<string, ChatToolParameterSchema>
             {
-                ["pot_number"] = new("integer", "Pot number 1–6."),
+                ["pot_number"] = new("integer", "Configured pot number from PotIdentityMap."),
             },
             ["pot_number"]),
 
         new("get_all_pots_status",
-            "Overview of all 6 pots: plants, statuses, and sensor readings.",
+            "Overview of all configured pots: plants, statuses, and sensor readings.",
             new Dictionary<string, ChatToolParameterSchema>(), []),
 
         new("get_sensor_readings",
             "Latest soil moisture and temperature for a specific pot.",
             new Dictionary<string, ChatToolParameterSchema>
             {
-                ["pot_number"] = new("integer", "Pot number 1–6."),
+                ["pot_number"] = new("integer", "Configured pot number from PotIdentityMap."),
             },
             ["pot_number"]),
 

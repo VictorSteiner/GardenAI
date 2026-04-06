@@ -2,7 +2,7 @@
 
 namespace HomeAssistant.Domain.PlantPots.Entities;
 
-/// <summary>Represents one of the six monitored plant pots in the garden system.</summary>
+/// <summary>Represents a monitored plant pot in the garden system.</summary>
 public sealed class PlantPot
 {
     /// <summary>Unique identifier for this pot.</summary>
@@ -11,7 +11,7 @@ public sealed class PlantPot
     /// <summary>Human-readable label for the pot (e.g. "Pot 1 – Tomatoes").</summary>
     public string Label { get; init; } = string.Empty;
 
-    /// <summary>Physical position index (1–6).</summary>
+    /// <summary>Physical position index based on the configured pot map.</summary>
     public int Position { get; init; }
 
     /// <summary>The plant species currently growing in this pot, if assigned.</summary>

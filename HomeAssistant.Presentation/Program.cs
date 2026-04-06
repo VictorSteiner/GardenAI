@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 // ── Register Services ──────────────────────────────────────────────────────
 builder.Services.AddOpenApi();
 builder.Services.AddHomeAssistantComposition(builder.Environment, builder.Configuration);
-builder.Services.AddCqrsServices();
+builder.Services.AddCqrsServices(builder.Configuration);
 builder.Services.AddExternalClients(builder.Configuration);
 builder.Services.AddGardenAdvisorServices(builder.Configuration);
 

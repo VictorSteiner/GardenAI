@@ -2,7 +2,7 @@
 
 /// <summary>Common request contract for pot-number based planner functions.</summary>
 public sealed record PotNumberFunctionRequest(
-    /// <summary>Pot number in the user-facing range 1–6.</summary>
+    /// <summary>Pot number in the configured PotIdentityMap.</summary>
     int PotNumber);
 
 /// <summary>Request contract for room-based planner functions.</summary>
