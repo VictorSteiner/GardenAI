@@ -1,4 +1,7 @@
-﻿namespace HomeAssistant.Presentation.GardenAdvisor.RouteBuilders;
+﻿
+using HomeAssistant.Presentation.GardenAdvisor.GardenAdvice.RouteBuilders;
+
+namespace HomeAssistant.Presentation.GardenAdvisor.RouteBuilders;
 
 /// <summary>Maps all garden advisor routes through domain-sliced route builders.</summary>
 public static class GardenAdvisorRouteBuilder
