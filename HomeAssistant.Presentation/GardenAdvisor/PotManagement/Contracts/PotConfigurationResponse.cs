@@ -1,4 +1,4 @@
-﻿namespace HomeAssistant.Presentation.GardenAdvisor.Contracts;
+﻿namespace HomeAssistant.Presentation.GardenAdvisor.PotManagement.Contracts;
 
 /// <summary>Response model for a pot's configuration (room + seeds).</summary>
 /// <param name="PotId">The pot ID.</param>

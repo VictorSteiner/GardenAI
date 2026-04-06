@@ -1,4 +1,4 @@
-﻿namespace HomeAssistant.Presentation.GardenAdvisor.Contracts;
+﻿namespace HomeAssistant.Presentation.GardenAdvisor.PotManagement.Contracts;
 
 /// <summary>Represents a single seed assignment in a pot configuration response.</summary>
 /// <param name="Id">Unique identifier for this seed assignment.</param>
