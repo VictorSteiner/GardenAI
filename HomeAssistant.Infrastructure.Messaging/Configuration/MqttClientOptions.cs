@@ -39,7 +39,7 @@ public sealed class MqttClientOptions
     /// <summary>Topic prefix for Zigbee2MQTT messages (e.g., "zigbee2mqtt").</summary>
     public string Zigbee2MqttTopicPrefix { get; set; } = "zigbee2mqtt";
 
-    /// <summary>Maps Zigbee device identifiers to PlantPot GUIDs.</summary>
+    /// <summary>Maps Zigbee device identifiers to local resource IDs.</summary>
     public Dictionary<string, string> SensorTopicMappings { get; set; } = [];
 }
 
