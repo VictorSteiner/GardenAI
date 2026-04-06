@@ -37,7 +37,7 @@ public sealed class OpenMeteoForecastClient : IOpenMeteoForecastClient
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var query = new Dictionary<string, string?>
+        var query = new Dictionary<string, string>
         {
             ["latitude"] = request.Latitude.ToString(CultureInfo.InvariantCulture),
             ["longitude"] = request.Longitude.ToString(CultureInfo.InvariantCulture),
@@ -71,7 +71,7 @@ public sealed class OpenMeteoForecastClient : IOpenMeteoForecastClient
         return payload;
     }
 
-    private static string? JoinCsv(IReadOnlyList<string> values)
+    private static string JoinCsv(IReadOnlyList<string> values)
     {
         if (values.Count == 0)
             return null;
@@ -80,7 +80,7 @@ public sealed class OpenMeteoForecastClient : IOpenMeteoForecastClient
         return filtered.Length == 0 ? null : string.Join(',', filtered);
     }
 
-    private static string BuildPathWithQuery(string path, IReadOnlyDictionary<string, string?> query)
+    private static string BuildPathWithQuery(string path, IReadOnlyDictionary<string, string> query)
     {
         var builder = new StringBuilder(path);
         var hasAny = false;

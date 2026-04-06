@@ -17,8 +17,8 @@ public sealed record ChatToolDefinition(
 /// <param name="Enum">Optional fixed value set.</param>
 public sealed record ChatToolParameterSchema(
     string Type,
-    string? Description = null,
-    IReadOnlyList<string>? Enum = null);
+    string Description = null,
+    IReadOnlyList<string> Enum = null);
 
 /// <summary>A single function call the AI decided to make.</summary>
 /// <param name="FunctionName">Name matching a <see cref="ChatToolDefinition.Name"/>.</param>

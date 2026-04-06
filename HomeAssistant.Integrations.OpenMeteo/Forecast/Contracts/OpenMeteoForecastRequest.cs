@@ -19,7 +19,7 @@ public sealed record OpenMeteoForecastRequest
     public IReadOnlyList<string> Daily { get; init; } = [];
 
     /// <summary>Timezone identifier or <c>auto</c>.</summary>
-    public string? Timezone { get; init; } = "auto";
+    public string Timezone { get; init; } = "auto";
 
     /// <summary>Number of forecast days to return.</summary>
     public int? ForecastDays { get; init; }
@@ -34,15 +34,15 @@ public sealed record OpenMeteoForecastRequest
     public DateOnly? EndDate { get; init; }
 
     /// <summary>Optional temperature unit (for example: celsius, fahrenheit).</summary>
-    public string? TemperatureUnit { get; init; }
+    public string TemperatureUnit { get; init; }
 
     /// <summary>Optional wind speed unit.</summary>
-    public string? WindSpeedUnit { get; init; }
+    public string WindSpeedUnit { get; init; }
 
     /// <summary>Optional precipitation unit.</summary>
-    public string? PrecipitationUnit { get; init; }
+    public string PrecipitationUnit { get; init; }
 
     /// <summary>Optional grid-cell selection strategy.</summary>
-    public string? CellSelection { get; init; }
+    public string CellSelection { get; init; }
 }
 
