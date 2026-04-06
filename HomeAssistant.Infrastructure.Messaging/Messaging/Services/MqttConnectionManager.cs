@@ -21,11 +21,11 @@ public sealed class MqttConnectionManager : IAsyncDisposable
     private readonly AppMqttOptions _options;
     private readonly ILogger<MqttConnectionManager> _logger;
     private readonly SemaphoreSlim _connectionGate = new(1, 1);
-    private NetMqttClient? _client;
+    private NetMqttClient _client;
     private bool _isStopping;
 
     /// <summary>The connected raw MQTTnet client. <c>null</c> before first connect.</summary>
-    public NetMqttClient? Client => _client;
+    public NetMqttClient Client => _client;
 
     /// <summary>Whether the client is currently connected to the broker.</summary>
     public bool IsConnected { get; private set; }
@@ -37,13 +37,13 @@ public sealed class MqttConnectionManager : IAsyncDisposable
     public bool IsStopping => _isStopping;
 
     /// <summary>Raised when a connection to the broker is successfully established.</summary>
-    public event Func<MqttClientConnectedEventArgs, Task>? Connected;
+    public event Func<MqttClientConnectedEventArgs, Task> Connected;
 
     /// <summary>Raised when the connection to the broker is lost or closed.</summary>
-    public event Func<MqttClientDisconnectedEventArgs, Task>? Disconnected;
+    public event Func<MqttClientDisconnectedEventArgs, Task> Disconnected;
 
     /// <summary>Raised when a message arrives on a subscribed topic.</summary>
-    public event Func<MqttApplicationMessageReceivedEventArgs, Task>? ApplicationMessageReceived;
+    public event Func<MqttApplicationMessageReceivedEventArgs, Task> ApplicationMessageReceived;
 
     /// <summary>Initialises the connection manager with broker options and a logger.</summary>
     public MqttConnectionManager(AppMqttOptions options, ILogger<MqttConnectionManager> logger)
