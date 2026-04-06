@@ -9,6 +9,7 @@ Use this repository in a strict task-first mode.
 ## Core Rule
 
 - Do not implement non-trivial changes unless there is an existing GitHub issue/task for the work.
+- Any newly created issue or sub-issue must be added to the repository GitHub Project (`Garden AI`) immediately after creation.
 - Every implementation PR must link an issue using one of:
   - `Closes #<id>`
   - `Fixes #<id>`
