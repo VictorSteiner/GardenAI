@@ -5,6 +5,7 @@ on:
     types: [opened, reopened, synchronize, labeled, ready_for_review]
 
 permissions:
+  contents: read
   pull-requests: write
 
 jobs:
@@ -15,45 +16,39 @@ jobs:
     steps:
       - name: Determine auto-approve eligibility
         id: eligibility
-        shell: bash
+        uses: actions/github-script@v7
         env:
-          PR_DRAFT: ${{ github.event.pull_request.draft }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-          AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
-          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
-          BASE_REPOSITORY: ${{ github.event.pull_request.base.repo.full_name }}
-          HAS_OVERRIDE_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'bot-auto-approve') }}
-          BOT_GITHUB_TOKEN: ${{ secrets.BOT_GITHUB_TOKEN }}
-        run: |
-          eligible=false
-          trusted_author=false
-          reason="Skipped: pull request does not meet auto-approve requirements."
+          BOT_GITHUB_TOKEN_PRESENT: ${{ secrets.BOT_GITHUB_TOKEN != '' }}
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const trustedAssociations = new Set(["OWNER", "MEMBER", "COLLABORATOR"]);
+            const labels = (pr.labels ?? []).map((label) => label.name);
 
-          if [[ "$AUTHOR_ASSOCIATION" == "OWNER" || "$AUTHOR_ASSOCIATION" == "MEMBER" || "$AUTHOR_ASSOCIATION" == "COLLABORATOR" ]]; then
-            trusted_author=true
-          fi
+            let eligible = false;
+            let reason = "Skipped: pull request does not meet auto-approve requirements.";
 
-          if [[ "$PR_DRAFT" == "true" ]]; then
-            reason="Skipped: pull request is still a draft."
-          elif [[ -z "$BOT_GITHUB_TOKEN" ]]; then
-            reason="Skipped: BOT_GITHUB_TOKEN is not configured."
-          elif [[ "$PR_AUTHOR" == "dependabot[bot]" ]]; then
-            reason="Skipped: dependabot pull requests require manual approval."
-          elif [[ "$HEAD_REPOSITORY" != "$BASE_REPOSITORY" ]]; then
-            reason="Skipped: fork pull requests are not eligible for auto-approval."
-          elif [[ "$trusted_author" == "true" ]]; then
-            eligible=true
-            reason="Approved: author association '$AUTHOR_ASSOCIATION' is trusted."
-          elif [[ "$HAS_OVERRIDE_LABEL" == "true" ]]; then
-            eligible=true
-            reason="Approved: bot-auto-approve label override is present for untrusted author association '$AUTHOR_ASSOCIATION'."
-          else
-            reason="Skipped: author association '$AUTHOR_ASSOCIATION' is not trusted and no bot-auto-approve override label is present."
-          fi
+            if (pr.draft) {
+              reason = "Skipped: pull request is still a draft.";
+            } else if (process.env.BOT_GITHUB_TOKEN_PRESENT !== "true") {
+              reason = "Skipped: BOT_GITHUB_TOKEN is not configured.";
+            } else if (pr.user?.login === "dependabot[bot]") {
+              reason = "Skipped: dependabot pull requests require manual approval.";
+            } else if (pr.head?.repo?.full_name !== pr.base?.repo?.full_name) {
+              reason = "Skipped: fork pull requests are not eligible for auto-approval.";
+            } else if (trustedAssociations.has(pr.author_association)) {
+              eligible = true;
+              reason = `Approved: author association '${pr.author_association}' is trusted.`;
+            } else if (labels.includes("bot-auto-approve")) {
+              eligible = true;
+              reason = `Approved: bot-auto-approve label override is present for untrusted author association '${pr.author_association}'.`;
+            } else {
+              reason = `Skipped: author association '${pr.author_association}' is not trusted and no bot-auto-approve override label is present.`;
+            }
 
-          echo "eligible=$eligible" >> "$GITHUB_OUTPUT"
-          echo "reason=$reason" >> "$GITHUB_OUTPUT"
-          echo "$reason"
+            core.setOutput("eligible", eligible ? "true" : "false");
+            core.setOutput("reason", reason);
+            core.info(reason);
 
       - name: Approve pull request
         if: steps.eligibility.outputs.eligible == 'true'
