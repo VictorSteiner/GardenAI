@@ -1,0 +1,43 @@
+﻿name: CI / Backend Build (.NET)
+
+on:
+  pull_request_target:
+    branches: [main]
+    paths:
+      - 'HomeAssistant*/**'
+      - '*.csproj'
+      - 'Directory.Packages.props'
+      - 'Directory.Build.props'
+      - '.github/workflows/backend-build.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'HomeAssistant*/**'
+      - '*.csproj'
+      - 'Directory.Packages.props'
+      - 'Directory.Build.props'
+
+permissions:
+  contents: read
+
+jobs:
+  backend-build:
+    name: Backend Build (.NET)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+          dotnet-quality: preview
+
+      - name: Restore
+        run: dotnet restore HomeAssistant.sln
+
+      - name: Build
+        run: dotnet build HomeAssistant.sln --configuration Release --no-restore
+

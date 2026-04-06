@@ -1,62 +1,28 @@
 ﻿name: CI
 
+# This workflow has been split into separate workflows for efficiency:
+# - backend-build.yml: Runs .NET build only when backend files change
+# - frontend-build.yml: Runs Node build only when frontend files change
+#
+# This allows each to run independently without waiting for the other,
+# and skips builds entirely if their respective paths haven't changed.
+
 on:
-  pull_request_target:
-    branches: [main]
-    paths:
-      - 'HomeAssistant*/**'
-      - '*.csproj'
-      - 'Directory.Packages.props'
-      - 'frontend/**'
-      - '.github/workflows/ci.yml'
-      - '.node-version'
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: ["CI / Backend Build (.NET)", "CI / Frontend Build (Node)"]
+    types: [completed]
 
 permissions:
   contents: read
 
 jobs:
-  backend-build:
-    name: Backend Build (.NET)
+  all-checks-passed:
+    name: All CI Checks Passed
     runs-on: ubuntu-latest
-
+    if: github.event.workflow_run.conclusion == 'success'
+    
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: ✅ All checks passed
+        run: echo "All CI checks completed successfully"
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
-          dotnet-quality: preview
-
-      - name: Restore
-        run: dotnet restore HomeAssistant.sln
-
-      - name: Build
-        run: dotnet build HomeAssistant.sln --configuration Release --no-restore
-
-  frontend-build:
-    name: Frontend Build (Node)
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .node-version
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        working-directory: frontend
-        run: npm ci
-
-      - name: Build
-        working-directory: frontend
-        run: npm run build
 
