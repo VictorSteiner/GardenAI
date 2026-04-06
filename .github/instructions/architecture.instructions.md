@@ -1,278 +1,529 @@
 ﻿---
-applyTo: "HomeAssistant.Domain/**/*.cs,HomeAssistant.Application/**/*.cs,HomeAssistant.Infrastructure.Persistence/**/*.cs,HomeAssistant.Infrastructure.Sensors/**/*.cs,HomeAssistant.Integrations.*/**/*.cs,HomeAssistant.Presentation/**/*.cs,HomeAssistant.*/*.csproj,HomeAssistant.sln"
+applyTo: "HomeAssistant.Domain/**/*.cs,HomeAssistant.Application/**/*.cs,HomeAssistant.Infrastructure.*/**/*.cs,HomeAssistant.Presentation/**/*.cs,HomeAssistant.*/*.csproj,HomeAssistant.sln"
 ---
 
 # Architecture Instructions
 
-## Clean Architecture Layers
+## Clean Architecture Principles
 
-The project follows **Clean Architecture** with four layers:
+The project follows **Clean Architecture** with four layers. Each layer has strict responsibilities and dependency rules.
 
 ```
-HomeAssistant.Presentation  ← ASP.NET Core Minimal APIs, SignalR hubs, composition root
-        ↓
-HomeAssistant.Application   ← Use cases, CQRS handlers, Semantic Kernel agents
-        ↓
-HomeAssistant.Domain        ← Domain model, interfaces, value objects, CQRS markers
-        ↓
-HomeAssistant.Infrastructure.Persistence + HomeAssistant.Infrastructure.Sensors ← EF Core, repositories, sensor providers, background services
+┌─────────────────────────────────────────────────┐
+│         Presentation Layer                      │
+│  (HTTP endpoints, composition root, routing)    │
+└────────────────────┬────────────────────────────┘
+                     ↓
+┌─────────────────────────────────────────────────┐
+│         Application Layer                       │
+│  (Use cases, CQRS dispatch, orchestration)      │
+└────────────────────┬────────────────────────────┘
+                     ↓
+┌─────────────────────────────────────────────────┐
+│         Domain Layer                            │
+│  (Entities, repository interfaces, values)      │
+└────────────────────┬────────────────────────────┘
+                     ↓
+┌─────────────────────────────────────────────────┐
+│         Infrastructure Layer                    │
+│  (EF Core, repos, external services, adapters)  │
+└─────────────────────────────────────────────────┘
 ```
 
-### Layer Rules
+### Layer Responsibilities
 
-1. **Presentation** → May reference Application & Domain (not Infrastructure)
-2. **Application** → May reference Domain only (orchestration logic)
-3. **Domain** → No external dependencies (pure business logic)
-4. **Infrastructure projects** → Implement Domain/Application interfaces (no upward references)
+| Layer | May Reference | Responsibility |
+|-------|---------------|---|
+| **Presentation** | Application, Domain | HTTP routes, DTOs, composition root, middleware |
+| **Application** | Domain only | Use case workflows, CQRS dispatch, service config |
+| **Domain** | Nothing | Pure business logic, entities, interfaces, no frameworks |
+| **Infrastructure** | Domain, Application | Implementations, databases, external APIs, adapters |
+
+### Forbidden Dependencies
+
+- ❌ Presentation → Infrastructure (directly)
+- ❌ Application → Presentation or Infrastructure
+- ❌ Domain → Presentation, Application, or Infrastructure
+- ❌ Infrastructure → Presentation or Application
 
 ---
 
-## Domain Model
+## Feature-Based Organization
 
-### Core Entities
-- **PlantPot** – A single plant pot with id, label, position, species
-- **PlantSpecies** – Definition of a plant type (ideal moisture range, temp range)
-- **SensorReading** – Single timestamp, soil moisture %, temperature °C for a pot
+Organize **all** code by **domain concern** (feature), not by technical type.
 
-### 6 Plant Pots
-- Domain logic must account for exactly 6 monitored pots
-- All pot data stored in PostgreSQL (via EF Core + Npgsql)
-- Latest readings accessible via repository
+### Principle: Group by "What" not "How"
+
+```
+✅ Feature-based (Domain Concern)
+Feature1/
+  Entities/
+    BusinessObject.cs
+  Abstractions/
+    IRepository.cs
+  Commands/
+    CreateFeatureCommand.cs
+  Queries/
+    GetFeatureQuery.cs
+```
+
+```
+❌ Type-based (Technical Layer)
+Entities/
+  BusinessObject.cs
+Abstractions/
+  IRepository.cs
+Commands/
+  CreateCommand.cs
+Queries/
+  GetQuery.cs
+```
+
+### Why?
+
+- Feature-based organization **isolates business logic** into cohesive units
+- Easy to find all code related to a feature
+- Scaling: add new features by adding new folders, not modifying existing structures
+- Reduces coupling between unrelated business concerns
 
 ---
 
-## Folder Structure
+## Interface-First Design
 
-**Feature-based organization** (not type-based):
+### Contract Before Implementation
 
-```
-HomeAssistant.Domain/
-  PlantPots/
-    Entities/
-      PlantPot.cs
-      PlantSpecies.cs
-    Abstractions/
-      IPlantPotRepository.cs
-  SensorReadings/
-    Entities/
-      SensorReading.cs
-    Abstractions/
-      ISensorReadingRepository.cs
-      ISensorProvider.cs
-  Assistant/
-    Entities/
-      ChatSession.cs
-      ChatMessage.cs
-    Abstractions/
-      IChatSessionRepository.cs
-  Common/
-    Markers/
-      ICommand.cs
-      IQuery.cs
-    Handlers/
-      ICommandHandler.cs
-      IQueryHandler.cs
+**Always** define interfaces before implementations:
 
-HomeAssistant.Application/
-  PlantPots/
-    Commands/
-      CreatePlantPot/
-        CreatePlantPotCommand.cs
-        CreatePlantPotCommandHandler.cs
-    Queries/
-      GetPlantPots/
-        GetPlantPotsQuery.cs
-        GetPlantPotsQueryHandler.cs
-  SensorReadings/
-    Queries/
-      GetLatestReadings/
-        GetLatestReadingsQuery.cs
-        GetLatestReadingsQueryHandler.cs
-  Agents/
-    GardenerAgent.cs
-    WeatherExpertAgent.cs
-    PlannerAgent.cs
-  Dispatching/
-    Abstractions/
-      ICommandDispatcher.cs
-    Services/
-      CommandDispatcher.cs
+1. Define the **business interface** in Domain
+2. Implement concrete types in Infrastructure
+3. Inject the interface in Application/Presentation
 
-HomeAssistant.Infrastructure.Persistence/
-  Database/
-    AppDbContext.cs
-  PlantPots/
-    Configurations/
-      PlantPotEntityTypeConfiguration.cs
-      PlantSpeciesEntityTypeConfiguration.cs
-    Repositories/
-      PlantPotRepository.cs
-  SensorReadings/
-    Configurations/
-      SensorReadingEntityTypeConfiguration.cs
-    Repositories/
-      SensorReadingRepository.cs
-  Assistant/
-    Configurations/
-      ChatMessageEntityTypeConfiguration.cs
-      ChatSessionEntityTypeConfiguration.cs
-    Repositories/
-      ChatSessionRepository.cs
-
-HomeAssistant.Infrastructure.Sensors/
-  Sensors/
-    Providers/
-      MockSensorProvider.cs
-      Zigbee2MqttSensorProvider.cs
-  BackgroundServices/
-    SensorPollingService.cs
-
-HomeAssistant.Integrations.OpenMeteo/
-  Forecast/
-    Abstractions/
-      IOpenMeteoForecastClient.cs
-    Clients/
-      OpenMeteoForecastClient.cs
-    Configuration/
-      OpenMeteoClientOptions.cs
-    Contracts/
-      OpenMeteoForecastRequest.cs
-      OpenMeteoForecastResponse.cs
-      OpenMeteoTimeSeriesBlock.cs
-    Exceptions/
-      OpenMeteoApiException.cs
-
-HomeAssistant.Presentation/
-  Chat/
-    Abstractions/
-      IChatAssistant.cs
-    Contracts/
-      ChatRequest.cs
-      ChatResponse.cs
-    RouteBuilders/
-      ChatRouteBuilder.cs
-    Endpoints/
-      PostChatPrompt/
-        PostChatPromptEndpoint.cs
-      CreateChatSession/
-        CreateChatSessionEndpoint.cs
-      ListChatSessions/
-        ListChatSessionsEndpoint.cs
-      GetChatSession/
-        GetChatSessionEndpoint.cs
-      PostChatSessionMessage/
-        PostChatSessionMessageEndpoint.cs
-    Services/
-      OllamaChatAssistant.cs
-  Endpoints/
-    PlantPotEndpoints.cs
-    SensorReadingEndpoints.cs
-  Hubs/
-    SensorHub.cs
-  Program.cs
-  HomeAssistant.Presentation.http
-```
-
-### File Placement Rules
-
-- **Never** add files to project root
-- **Always** use feature folders (PlantPots, SensorReadings, Agents, etc.)
-- **Group by concern**, not by type
-- **Interfaces in Domain**, implementations in Infrastructure
-- In `HomeAssistant.Domain`, prefer `Entities/` and `Abstractions/` subfolders once a feature contains both domain models and contracts
-- In `HomeAssistant.Domain/Common`, keep marker interfaces under `Markers/` and handler contracts under `Handlers/`
-- When a feature contains multiple responsibility kinds, split into focused subfolders such as `Abstractions`, `Contracts`, `Services`, `Repositories`, `Configurations`, `Providers`, `Clients`, `Configuration`, and `Exceptions`
-- Do not mix service implementations with contracts or abstractions in the same folder unless the feature is trivially small
-- In `HomeAssistant.Presentation`, keep `Program.cs` as the composition root and delegate HTTP mapping to feature route builders such as `<Domain>RouteBuilder`
-- For presentation features with multiple endpoints, place each endpoint in its own `Endpoints/<EndpointName>/` folder instead of flattening endpoint files together
-
----
-
-## Key Abstractions
-
-### Repositories (Domain → Infrastructure)
 ```csharp
-// Domain
-public interface IPlantPotRepository
+// Domain/MyFeature/Abstractions/IRepository.cs
+public interface IMyRepository
 {
-    Task<PlantPot?> GetByIdAsync(Guid id, CancellationToken ct = default);
-    Task<IReadOnlyList<PlantPot>> GetAllAsync(CancellationToken ct = default);
-    Task AddAsync(PlantPot pot, CancellationToken ct = default);
+    Task<MyEntity?> GetByIdAsync(Guid id, CancellationToken ct);
+    Task<IReadOnlyList<MyEntity>> GetAllAsync(CancellationToken ct);
+    Task AddAsync(MyEntity entity, CancellationToken ct);
 }
 
-// Infrastructure
-public sealed class PlantPotRepository : IPlantPotRepository { ... }
+// Infrastructure.Persistence/MyFeature/Repositories/MyRepository.cs
+public sealed class MyRepository : IMyRepository { ... }
+
+// Application/MyFeature/Services/MyService.cs
+public sealed class MyService
+{
+    private readonly IMyRepository _repo;
+    public MyService(IMyRepository repo) => _repo = repo;
+}
 ```
 
-### Sensor Provider (Domain → Infrastructure)
+### Benefits
+
+- **Testability:** Mock the interface in unit tests
+- **Flexibility:** Swap implementations without changing callers
+- **Loose coupling:** Business logic doesn't depend on specific data stores or external services
+- **Clarity:** Interface = contract, implementation = detail
+
+### Registration in Composition Root
+
+Instances are created and registered in **`Program.cs`** (the composition root). See the **Dependency Injection Composition** section for detailed registration examples.
+
+---
+
+## CQRS Pattern
+
+### Commands (Write Operations)
+
+Commands represent **state-changing operations**:
+
 ```csharp
-// Domain
-public interface ISensorProvider
+public interface ICommand { }
+public interface ICommandHandler<TCommand> where TCommand : ICommand
 {
-    Task<IReadOnlyList<SensorReading>> GetLatestReadingsAsync(CancellationToken ct = default);
+    Task HandleAsync(TCommand command, CancellationToken ct);
+}
+```
+
+**Characteristics:**
+- Returns completion status only (no domain data back to caller)
+- Dispatched through a **bounded channel** with concurrency limit
+- Executed sequentially per command (order preserved)
+- Suitable for transactional operations
+
+### Queries (Read Operations)
+
+Queries represent **data retrieval operations**:
+
+```csharp
+public interface IQuery<TResult> { }
+public interface IQueryHandler<TQuery, TResult> where TQuery : IQuery<TResult>
+{
+    Task<TResult> HandleAsync(TQuery query, CancellationToken ct);
+}
+```
+
+**Characteristics:**
+- Returns typed result data
+- Called **directly** (not through a channel)
+- Can execute in parallel across request threads
+- No side effects; safe to call multiple times
+
+### Dispatcher Pattern
+
+Commands flow through a dispatcher that manages concurrency:
+
+```csharp
+public interface ICommandDispatcher
+{
+    Task DispatchAsync(ICommand command, CancellationToken ct);
+}
+```
+
+The dispatcher:
+- Uses `System.Threading.Channels.Channel<T>` for queueing
+- Uses `SemaphoreSlim` for concurrency control
+- Ensures FIFO order for a given feature
+- Prevents unbounded concurrent writes to shared state
+
+---
+
+## Dependency Injection Composition
+
+### One Place to Compose
+
+All services are registered in the **composition root** (typically `Program.cs`):
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+// Register layers
+builder.Services.AddDbContext<MyDbContext>(/* config */);
+builder.Services.AddScoped<IMyRepository, MyRepository>();
+builder.Services.AddScoped<IQueryHandler<GetDataQuery, DataDto>, GetDataQueryHandler>();
+builder.Services.AddSingleton<ICommandDispatcher>(sp => new CommandDispatcher(sp, maxConcurrency: 4));
+
+var app = builder.Build();
+// ... routes and middleware
+app.Run();
+```
+
+### No `new` Outside Composition Root
+
+**✅ Correct:**
+```csharp
+public sealed class MyService
+{
+    private readonly IRepository _repo;
+    public MyService(IRepository repo) => _repo = repo;
+}
+```
+
+**❌ Wrong:**
+```csharp
+public sealed class MyService
+{
+    public MyService()
+    {
+        var repo = new ConcreteRepository();  // ❌ DO NOT DO THIS
+    }
+}
+```
+
+### Service Lifetimes
+
+| Lifetime | Use Case | Example |
+|----------|----------|---------|
+| **Scoped** | Per HTTP request | Repositories, query handlers, DbContext |
+| **Transient** | New instance each call | Rare; most services are scoped |
+| **Singleton** | App lifetime | CommandDispatcher, Serilog, configuration |
+
+---
+
+## Configuration Management
+
+### Options Pattern
+
+Use the ASP.NET Core **Options pattern** for configuration:
+
+```csharp
+// Define in Application layer
+public sealed class MyServiceOptions
+{
+    public required string ApiUrl { get; set; }
+    public int TimeoutSeconds { get; set; } = 30;
 }
 
-// Development (mock)
-public sealed class MockSensorProvider : ISensorProvider { ... }
+// In Program.cs
+var options = new MyServiceOptions();
+configuration.GetSection("MyService").Bind(options);
+builder.Services.AddSingleton(options);
 
-// Production (real hardware)
-public sealed class Zigbee2MqttSensorProvider : ISensorProvider { ... }
+// Inject in services
+public sealed class MyService
+{
+    private readonly MyServiceOptions _options;
+    public MyService(MyServiceOptions options) => _options = options;
+}
+```
+
+### Configuration Sources
+
+1. **appsettings.json** – Non-sensitive configuration
+2. **appsettings.{Environment}.json** – Environment-specific overrides
+3. **Environment variables** – Secrets, secrets management
+
+**Never commit secrets.** Use environment variable injection in production.
+
+---
+
+## Testing Architecture
+
+### Unit Tests
+
+Mock all external dependencies; test business logic in isolation:
+
+```csharp
+[Fact]
+public async Task HandleAsync_WithValidInput_ReturnsSuccess()
+{
+    // Arrange: mock the interface
+    var mockRepo = new Mock<IRepository>();
+    mockRepo.Setup(x => x.GetAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+        .ReturnsAsync(new MyEntity(Guid.NewGuid()));
+    
+    var handler = new MyCommandHandler(mockRepo.Object);
+    var command = new MyCommand(Guid.NewGuid());
+    
+    // Act
+    await handler.HandleAsync(command, CancellationToken.None);
+    
+    // Assert
+    mockRepo.Verify(x => x.GetAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once);
+}
+```
+
+### Integration Tests
+
+Spin up the full host and test end-to-end:
+
+```csharp
+[Fact]
+public async Task GetAsync_ReturnsExpectedData()
+{
+    // Arrange
+    var factory = new WebApplicationFactory<Program>();
+    var client = factory.CreateClient();
+    
+    // Act
+    var response = await client.GetAsync("/api/myfeature/data");
+    
+    // Assert
+    response.StatusCode.Should().Be(HttpStatusCode.OK);
+}
+```
+
+### In-Memory Persistence
+
+Use EF Core's in-memory database for fast unit tests without SQL Server:
+
+```csharp
+var options = new DbContextOptionsBuilder<MyDbContext>()
+    .UseInMemoryDatabase("TestDb")
+    .Options;
+
+using var context = new MyDbContext(options);
+// ... test code
 ```
 
 ---
 
-## Composition Root
+## Data Access Patterns
 
-**All DI registration happens in `Program.cs`** — never instantiate services elsewhere.
+### Repository Interface Lives in Domain
+
+```csharp
+// HomeAssistant.Domain/MyFeature/Abstractions/IMyRepository.cs
+public interface IMyRepository
+{
+    Task<MyEntity?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<IReadOnlyList<MyEntity>> GetAllAsync(CancellationToken ct = default);
+    Task AddAsync(MyEntity entity, CancellationToken ct = default);
+    Task UpdateAsync(MyEntity entity, CancellationToken ct = default);
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
+}
+```
+
+### Repository Implementation Lives in Infrastructure
+
+```csharp
+// HomeAssistant.Infrastructure.Persistence/MyFeature/Repositories/MyRepository.cs
+public sealed class MyRepository : IMyRepository
+{
+    private readonly MyDbContext _context;
+    public MyRepository(MyDbContext context) => _context = context;
+    
+    public async Task<MyEntity?> GetByIdAsync(Guid id, CancellationToken ct)
+        => await _context.MyEntities.FirstOrDefaultAsync(x => x.Id == id, ct);
+    // ... other methods
+}
+```
+
+### Entity Configurations
+
+Keep Entity Framework configurations **separate from DbContext**:
+
+```csharp
+// Infrastructure.Persistence/MyFeature/Configurations/MyEntityConfiguration.cs
+public sealed class MyEntityTypeConfiguration : IEntityTypeConfiguration<MyEntity>
+{
+    public void Configure(EntityTypeBuilder<MyEntity> builder)
+    {
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Name).HasMaxLength(100);
+        // ...
+    }
+}
+
+// DbContext applies all configurations via assembly scanning
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    base.OnModelCreating(modelBuilder);
+    modelBuilder.ApplyConfigurationsFromAssembly(typeof(MyEntityTypeConfiguration).Assembly);
+}
+```
+
+---
+
+## API Design
+
+### Minimal APIs
+
+Use extension methods to organize routes by feature:
 
 ```csharp
 // Program.cs
-builder.Services.AddScoped<IPlantPotRepository, PlantPotRepository>();
-builder.Services.AddScoped<ISensorReadingRepository, SensorReadingRepository>();
+app.MapMyFeatureRoutes();
 
-if (builder.Environment.IsDevelopment())
-    builder.Services.AddSingleton<ISensorProvider, MockSensorProvider>();
-else
-    builder.Services.AddSingleton<ISensorProvider, Zigbee2MqttSensorProvider>();
+// MyFeature/RouteBuilders/MyFeatureRouteBuilder.cs
+public static class MyFeatureRouteBuilder
+{
+    public static void MapMyFeatureRoutes(this WebApplication app)
+    {
+        var group = app.MapGroup("/api/myfeature")
+            .WithName("MyFeature")
+            .WithOpenApi();
+        
+        group.MapGet("/", GetAll).WithName("GetAll");
+        group.MapPost("/", Create).WithName("Create");
+        group.MapPut("/{id}", Update).WithName("Update");
+    }
+}
+```
+
+### Typed Results
+
+Always use typed results with `.Produces<T>()`:
+
+```csharp
+static async Task<Ok<MyDto>> GetAll(IQueryHandler<GetAllQuery, IReadOnlyList<MyDto>> handler, CancellationToken ct)
+{
+    var result = await handler.HandleAsync(new GetAllQuery(), ct);
+    return TypedResults.Ok(result);
+}
+```
+
+Benefits:
+- Type-safe endpoint definitions
+- Automatic OpenAPI documentation
+- IDE autocomplete for response types
+
+---
+
+## Logging Strategy
+
+### Use Serilog
+
+All logging via **injected `ILogger<T>`**, never `Console.WriteLine`:
+
+```csharp
+public sealed class MyService
+{
+    private readonly ILogger<MyService> _logger;
+    public MyService(ILogger<MyService> logger) => _logger = logger;
+    
+    public async Task DoWork()
+    {
+        _logger.LogInformation("Starting work...");
+        try
+        {
+            // ... work
+            _logger.LogInformation("Work completed successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Work failed");
+            throw;
+        }
+    }
+}
+```
+
+### Structured Logging
+
+Include context in log messages:
+
+```csharp
+_logger.LogInformation("Processing feature {FeatureId} for user {UserId}", featureId, userId);
+```
+
+Configure Serilog in `Program.cs`:
+
+```csharp
+builder.Host.UseSerilog((ctx, cfg) => cfg
+    .ReadFrom.Configuration(ctx.Configuration)
+    .WriteTo.Console()
+    .WriteTo.File("logs/app-.log", rollingInterval: RollingInterval.Day));
 ```
 
 ---
 
-## Layer Boundaries
+## Null Safety
 
-### ✅ Allowed References
-- Presentation → Application interfaces, Domain interfaces
-- Application → Domain interfaces only
-- Infrastructure → implements Domain/Application interfaces
+### Nullable Reference Types Enabled
 
-### ❌ Forbidden
-- Presentation → Infrastructure (except via interfaces)
-- Infrastructure → Presentation
-- Domain → anything external
-- "new ConcreteService()" outside Program.cs
+All projects must have nullable reference types enabled in `.csproj`:
 
----
-
-## Adding a New Layer
-
-```powershell
-# 1. Create project
-dotnet new classlib -n HomeAssistant.<LayerName> -f net10.0
-
-# 2. Add to solution
-dotnet sln add HomeAssistant.<LayerName>/HomeAssistant.<LayerName>.csproj
-
-# 3. Add project reference in consuming layer
-# Edit consuming .csproj: <ProjectReference Include="..\HomeAssistant.<LayerName>\HomeAssistant.<LayerName>.csproj" />
-
-# 4. Register in Program.cs (if providing services)
+```xml
+<PropertyGroup>
+  <Nullable>enable</Nullable>
+</PropertyGroup>
 ```
 
----
+### Guard Clauses
 
-## See Also
+Check inputs at method entry:
 
-- **cqrs.instructions.md** – How commands and queries flow through layers
-- **dependency-injection.instructions.md** – DI setup and patterns
-- **interface-first.instructions.md** – Always define interfaces before implementations
-
+```csharp
+public sealed class MyService
+{
+    private readonly IRepository _repo;
+    
+    public MyService(IRepository repo)
+    {
+        ArgumentNullException.ThrowIfNull(repo);
+        _repo = repo;
+    }
+    
+    public async Task<MyDto> GetAsync(Guid id, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+        
+        var entity = await _repo.GetByIdAsync(id, ct);
+        if (entity is null)
+            return null;  // or throw if required
+        
+        return new MyDto(entity.Id, entity.Name);
+    }
+}
+```
