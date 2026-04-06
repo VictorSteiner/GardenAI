@@ -1,5 +1,5 @@
-﻿---
-applyTo: "HomeAssistant.Domain/**/*.cs,HomeAssistant.Application/**/*.cs,HomeAssistant.Infrastructure.Persistence/**/*.cs,HomeAssistant.Infrastructure.Sensors/**/*.cs,HomeAssistant.Integrations.*/**/*.cs,HomeAssistant.Presentation/**/*.cs"
+---
+applyTo: "GardenAI.Domain/**/*.cs,GardenAI.Application/**/*.cs,GardenAI.Infrastructure.Persistence/**/*.cs,GardenAI.Infrastructure.Sensors/**/*.cs,GardenAI.Integrations.*/**/*.cs,GardenAI.Presentation/**/*.cs"
 ---
 
 # Folder Organization Instructions
@@ -21,15 +21,15 @@ Keep the codebase readable and SOLID-friendly by separating files by responsibil
 
 Use these subfolders when a feature contains multiple responsibility kinds:
 
-- `Abstractions/` – interfaces and abstraction seams
-- `Contracts/` – request/response DTOs, records, payload contracts
-- `Services/` – service implementations
-- `Repositories/` – persistence repository implementations
-- `Configurations/` – EF Core entity type configurations and other mapping/configuration classes
-- `Providers/` – provider implementations such as sensor providers
-- `Clients/` – HTTP/API client implementations
-- `Configuration/` – options classes and provider-specific configuration objects
-- `Exceptions/` – custom exception types
+- `Abstractions/` � interfaces and abstraction seams
+- `Contracts/` � request/response DTOs, records, payload contracts
+- `Services/` � service implementations
+- `Repositories/` � persistence repository implementations
+- `Configurations/` � EF Core entity type configurations and other mapping/configuration classes
+- `Providers/` � provider implementations such as sensor providers
+- `Clients/` � HTTP/API client implementations
+- `Configuration/` � options classes and provider-specific configuration objects
+- `Exceptions/` � custom exception types
 
 ## Practical Guidance by Layer
 
@@ -57,7 +57,7 @@ Use these subfolders when a feature contains multiple responsibility kinds:
 - Place each endpoint in its own folder under `Endpoints/<EndpointName>/` instead of flattening multiple endpoint files into one folder.
 - Place endpoint-specific request/response contracts under the endpoint folder, for example `Endpoints/<EndpointName>/Contracts/`.
 - Keep shared presentation contracts only for models reused across multiple endpoints.
-- Internal AI tool / protocol function endpoints belong in a dedicated `ProtocolTools/` slice — do not mix them into domain-facing endpoint folders.
+- Internal AI tool / protocol function endpoints belong in a dedicated `ProtocolTools/` slice � do not mix them into domain-facing endpoint folders.
 
 ## Domain-Sliced Endpoint Structure
 
@@ -68,12 +68,12 @@ When a presentation feature grows to span distinct domain responsibilities (for 
 Each domain slice owns its routes, endpoints, and feature-local contracts:
 
 ```text
-HomeAssistant.Presentation/<Feature>/
+GardenAI.Presentation/<Feature>/
   RouteBuilders/
-    <Feature>RouteBuilder.cs            ← aggregator: calls each slice's Map*Routes()
-    <Slice1>RouteBuilder.cs             ← e.g. GardenPlanningRouteBuilder.cs
-    <Slice2>RouteBuilder.cs             ← e.g. PotManagementRouteBuilder.cs
-    <Slice3>RouteBuilder.cs             ← e.g. ProtocolToolsRouteBuilder.cs
+    <Feature>RouteBuilder.cs            ? aggregator: calls each slice's Map*Routes()
+    <Slice1>RouteBuilder.cs             ? e.g. GardenPlanningRouteBuilder.cs
+    <Slice2>RouteBuilder.cs             ? e.g. PotManagementRouteBuilder.cs
+    <Slice3>RouteBuilder.cs             ? e.g. ProtocolToolsRouteBuilder.cs
   <Slice1>/
     Endpoints/
       <EndpointName>/
@@ -81,26 +81,26 @@ HomeAssistant.Presentation/<Feature>/
         Contracts/
           <Request>.cs
           <Response>.cs
-    Contracts/                          ← contracts shared across this slice only
-    RouteBuilders/                      ← slice-internal route builder (optional)
+    Contracts/                          ? contracts shared across this slice only
+    RouteBuilders/                      ? slice-internal route builder (optional)
   <Slice2>/
     ...
-  Contracts/                            ← truly cross-slice shared contracts only
-  Abstractions/                         ← service interfaces owned by the feature
-  Services/                             ← service implementations
+  Contracts/                            ? truly cross-slice shared contracts only
+  Abstractions/                         ? service interfaces owned by the feature
+  Services/                             ? service implementations
 ```
 
 ### Real Example (GardenAdvisor)
 
 ```text
-HomeAssistant.Presentation/GardenAdvisor/
+GardenAI.Presentation/GardenAdvisor/
   RouteBuilders/
-    GardenAdvisorRouteBuilder.cs        ← aggregator; calls all slice Map*Routes()
+    GardenAdvisorRouteBuilder.cs        ? aggregator; calls all slice Map*Routes()
     GardenPlanningRouteBuilder.cs
     PotManagementRouteBuilder.cs
     RoomInsightsRouteBuilder.cs
     GardenInsightsRouteBuilder.cs
-    ProtocolToolsRouteBuilder.cs        ← internal AI tool endpoint surface
+    ProtocolToolsRouteBuilder.cs        ? internal AI tool endpoint surface
   GardenPlanning/
     Endpoints/
       PostGardenPlannerChat/
@@ -113,7 +113,7 @@ HomeAssistant.Presentation/GardenAdvisor/
       PostSavePotConfiguration/
       PostUpdateSeedStatus/
     Contracts/
-      PotConfigurationResponse.cs       ← shared within PotManagement slice
+      PotConfigurationResponse.cs       ? shared within PotManagement slice
   RoomInsights/
     Endpoints/
       GetAvailableRooms/
@@ -128,12 +128,12 @@ HomeAssistant.Presentation/GardenAdvisor/
       PostGenerateGardenAdvice/
   Endpoints/
     ProtocolTools/
-      GardenPlannerToolEndpoints.cs     ← AI-invokable tool endpoint surface
+      GardenPlannerToolEndpoints.cs     ? AI-invokable tool endpoint surface
       Contracts/
         SavePotConfigurationRequest.cs
         PotNumberRequest.cs
         ...
-  Contracts/                            ← cross-slice shared contracts
+  Contracts/                            ? cross-slice shared contracts
     DashboardAggregationResponse.cs
     RoomSummaryResponse.cs
   Abstractions/
@@ -158,26 +158,26 @@ Create a new domain slice when:
 - An existing route builder file exceeds ~60 lines or maps more than ~5 unrelated endpoint families.
 - Adding a new endpoint would require touching an unrelated existing route group.
 
-Do **not** create a slice for a single endpoint — use a simple `Endpoints/<EndpointName>/` folder directly.
+Do **not** create a slice for a single endpoint � use a simple `Endpoints/<EndpointName>/` folder directly.
 
 ## Contract Placement Examples
 
 ```text
-HomeAssistant.Presentation/GardenAdvisor/
+GardenAI.Presentation/GardenAdvisor/
   GardenPlanning/
     Endpoints/
       PostGardenPlannerChat/
         Contracts/
-          GardenPlannerChatRequest.cs    ← endpoint-local contract
+          GardenPlannerChatRequest.cs    ? endpoint-local contract
           GardenPlannerChatResponse.cs
   Endpoints/
     ProtocolTools/
       Contracts/
-        PotNumberRequest.cs              ← ProtocolTools-local contract
+        PotNumberRequest.cs              ? ProtocolTools-local contract
   Contracts/
-    DashboardAggregationResponse.cs      ← reused across GardenInsights + ProtocolTools
+    DashboardAggregationResponse.cs      ? reused across GardenInsights + ProtocolTools
 
-HomeAssistant.Application/Chat/
+GardenAI.Application/Chat/
   Contracts/
     Completions/
       ChatCompletionRequest.cs
@@ -247,9 +247,9 @@ IGardenPlannerToolService (12 methods spanning commands, queries, and advice)
   - advice generation
 
 After
-IGardenPlannerCommandService   ← save/update pot workflows
-IGardenPlannerQueryService     ← pot/room/dashboard read workflows
-IGardenPlannerAdviceService    ← advice generation and retrieval
+IGardenPlannerCommandService   ? save/update pot workflows
+IGardenPlannerQueryService     ? pot/room/dashboard read workflows
+IGardenPlannerAdviceService    ? advice generation and retrieval
 ```
 
 ## Exceptions

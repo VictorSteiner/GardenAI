@@ -1,5 +1,5 @@
-﻿---
-applyTo: "HomeAssistant.Domain/**/*.cs,HomeAssistant.Application/**/*.cs,HomeAssistant.Infrastructure.Persistence/**/*.cs,HomeAssistant.Infrastructure.Sensors/**/*.cs,HomeAssistant.Integrations.*/**/*.cs"
+---
+applyTo: "GardenAI.Domain/**/*.cs,GardenAI.Application/**/*.cs,GardenAI.Infrastructure.Persistence/**/*.cs,GardenAI.Infrastructure.Sensors/**/*.cs,GardenAI.Integrations.*/**/*.cs"
 ---
 
 # Interface-First Discipline
@@ -13,8 +13,8 @@ applyTo: "HomeAssistant.Domain/**/*.cs,HomeAssistant.Application/**/*.cs,HomeAss
 ## Pattern
 
 ```csharp
-// ✅ Step 1: Define interface in Domain
-// HomeAssistant.Domain/PlantPots/Abstractions/IPlantPotRepository.cs
+// ? Step 1: Define interface in Domain
+// GardenAI.Domain/PlantPots/Abstractions/IPlantPotRepository.cs
 public interface IPlantPotRepository
 {
     /// <summary>Retrieves all plant pots.</summary>
@@ -27,8 +27,8 @@ public interface IPlantPotRepository
     Task AddAsync(PlantPot pot, CancellationToken ct = default);
 }
 
-// ✅ Step 2: Implement in Infrastructure
-// HomeAssistant.Infrastructure.Persistence/PlantPots/Repositories/PlantPotRepository.cs
+// ? Step 2: Implement in Infrastructure
+// GardenAI.Infrastructure.Persistence/PlantPots/Repositories/PlantPotRepository.cs
 public sealed class PlantPotRepository : IPlantPotRepository
 {
     private readonly AppDbContext _context;
@@ -67,25 +67,25 @@ public sealed class PlantPotRepository : IPlantPotRepository
 
 ### Domain Layer Interfaces
 ```csharp
-// HomeAssistant.Domain/PlantPots/Abstractions/
+// GardenAI.Domain/PlantPots/Abstractions/
 public interface IPlantPotRepository { }
 
-// HomeAssistant.Domain/SensorReadings/Abstractions/
+// GardenAI.Domain/SensorReadings/Abstractions/
 public interface ISensorReadingRepository { }
 public interface ISensorProvider { }
 
-// HomeAssistant.Domain/Common/Markers/
+// GardenAI.Domain/Common/Markers/
 public interface ICommand { }
 public interface IQuery<TResult> { }
 
-// HomeAssistant.Domain/Common/Handlers/
+// GardenAI.Domain/Common/Handlers/
 public interface ICommandHandler<TCommand> where TCommand : ICommand { }
 public interface IQueryHandler<TQuery, TResult> where TQuery : IQuery<TResult> { }
 ```
 
 ### Application Layer Interfaces
 ```csharp
-// HomeAssistant.Application/Services/
+// GardenAI.Application/Services/
 public interface IGardenerAgent { }
 public interface IWeatherExpertAgent { }
 public interface IPlannerAgent { }
@@ -93,11 +93,11 @@ public interface IPlannerAgent { }
 
 ### Infrastructure Layer Implementations
 ```csharp
-// HomeAssistant.Infrastructure.Persistence/PlantPots/
+// GardenAI.Infrastructure.Persistence/PlantPots/
 public sealed class PlantPotRepository : IPlantPotRepository { }
 public sealed class SensorReadingRepository : ISensorReadingRepository { }
 
-// HomeAssistant.Infrastructure.Sensors/Sensors/
+// GardenAI.Infrastructure.Sensors/Sensors/
 public sealed class MockSensorProvider : ISensorProvider { }
 public sealed class Zigbee2MqttSensorProvider : ISensorProvider { }
 ```
@@ -106,25 +106,25 @@ public sealed class Zigbee2MqttSensorProvider : ISensorProvider { }
 
 ## No Concrete Types Across Boundaries
 
-### ❌ Wrong: Concrete type leaks to Presentation
+### ? Wrong: Concrete type leaks to Presentation
 
 ```csharp
-// HomeAssistant.Infrastructure.Persistence
+// GardenAI.Infrastructure.Persistence
 public sealed class PlantPotRepository : IPlantPotRepository { }
 
-// HomeAssistant.Presentation
-app.MapGet("/pots", async (PlantPotRepository repo) =>  // ❌ Concrete type!
+// GardenAI.Presentation
+app.MapGet("/pots", async (PlantPotRepository repo) =>  // ? Concrete type!
 {
     var pots = await repo.GetAllAsync(CancellationToken.None);
     return Results.Ok(pots);
 });
 ```
 
-### ✅ Correct: Only interface crosses boundaries
+### ? Correct: Only interface crosses boundaries
 
 ```csharp
-// HomeAssistant.Presentation
-app.MapGet("/pots", async (IPlantPotRepository repo) =>  // ✅ Interface only
+// GardenAI.Presentation
+app.MapGet("/pots", async (IPlantPotRepository repo) =>  // ? Interface only
 {
     var pots = await repo.GetAllAsync(CancellationToken.None);
     return Results.Ok(pots);
@@ -138,10 +138,10 @@ app.MapGet("/pots", async (IPlantPotRepository repo) =>  // ✅ Interface only
 Use `sealed` on concrete implementations to prevent accidental subclassing:
 
 ```csharp
-// ✅ Correct
+// ? Correct
 public sealed class PlantPotRepository : IPlantPotRepository { }
 
-// ❌ Wrong
+// ? Wrong
 public class PlantPotRepository : IPlantPotRepository { }
 ```
 
@@ -190,14 +190,14 @@ public async Task AddAsync(PlantPot pot, CancellationToken ct = default)
 Mock interfaces, not concrete classes:
 
 ```csharp
-// ✅ Correct: Mock the interface
+// ? Correct: Mock the interface
 var mockRepo = new Mock<IPlantPotRepository>();
 mockRepo.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
     .ReturnsAsync(new List<PlantPot> { /* ... */ });
 
 var handler = new GetAllPotsQueryHandler(mockRepo.Object);
 
-// ❌ Wrong: Can't mock a sealed concrete class easily
+// ? Wrong: Can't mock a sealed concrete class easily
 var mockRepo = new Mock<PlantPotRepository>();  // Less flexible
 ```
 
@@ -235,6 +235,6 @@ When planning or implementing a feature:
 
 ## See Also
 
-- **architecture.instructions.md** – Layer responsibilities and folder structure
-- **dependency-injection.instructions.md** – How interfaces are resolved from the container
+- **architecture.instructions.md** � Layer responsibilities and folder structure
+- **dependency-injection.instructions.md** � How interfaces are resolved from the container
 

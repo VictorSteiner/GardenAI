@@ -4,7 +4,7 @@
     container_name: ha-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-homeassistant}
+      POSTGRES_DB: ${POSTGRES_DB:-gardenai}
       POSTGRES_USER: ${POSTGRES_USER:-ha_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME}
     ports:
@@ -12,7 +12,7 @@
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ha_user} -d ${POSTGRES_DB:-homeassistant}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ha_user} -d ${POSTGRES_DB:-gardenai}"]
       interval: 10s
       timeout: 5s
       retries: 10

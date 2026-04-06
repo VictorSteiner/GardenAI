@@ -1,5 +1,5 @@
-﻿---
-applyTo: "HomeAssistant.Presentation/Program.cs,HomeAssistant.Application/**/*.cs,HomeAssistant.Infrastructure.*/**/*.cs"
+---
+applyTo: "GardenAI.Presentation/Program.cs,GardenAI.Application/**/*.cs,GardenAI.Infrastructure.*/**/*.cs"
 ---
 
 # Dependency Injection Instructions
@@ -11,18 +11,18 @@ applyTo: "HomeAssistant.Presentation/Program.cs,HomeAssistant.Application/**/*.c
 **Exceptions:** Immutable records (DTOs), value objects, and test factories may use `new` directly since they are not shared singleton/scoped services.
 
 ```csharp
-// ❌ Wrong: Creating services directly
+// ? Wrong: Creating services directly
 var service = new MyRepository();
 
-// ✅ Correct: Injecting via interface
+// ? Correct: Injecting via interface
 public sealed class MyClass
 {
     private readonly IRepository _repo;
     public MyClass(IRepository repo) => _repo = repo;
 }
 
-// ✅ Exception: Creating DTOs directly is fine
-var dto = new MyDto(id, name);  // ← OK, immutable record
+// ? Exception: Creating DTOs directly is fine
+var dto = new MyDto(id, name);  // ? OK, immutable record
 ```
 
 ---
@@ -56,46 +56,46 @@ builder.Services.AddTransient<IValidator, Validator>();
 
 ### One Place to Register Everything
 
-All service registration happens in **`Program.cs`** — no other file should call `AddScoped` or similar:
+All service registration happens in **`Program.cs`** � no other file should call `AddScoped` or similar:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Layer 1: Domain Interfaces (no implementations here)
+// -- Layer 1: Domain Interfaces (no implementations here)
 // (Domain layer defines interfaces only, not registered here)
 
-// ── Layer 2: Application Services & CQRS
+// -- Layer 2: Application Services & CQRS
 builder.Services.AddScoped<IQueryHandler<GetDataQuery, DataDto>, GetDataQueryHandler>();
 builder.Services.AddScoped<ICommandHandler<CreateDataCommand>, CreateDataCommandHandler>();
 
-// ── Layer 3: Infrastructure - Persistence
+// -- Layer 3: Infrastructure - Persistence
 builder.Services.AddDbContext<MyDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IRepository, Repository>();
 
-// ── Layer 3: Infrastructure - External Services
+// -- Layer 3: Infrastructure - External Services
 builder.Services.AddHttpClient<IExternalApiClient, ExternalApiClient>((_, client) =>
 {
     client.BaseAddress = new Uri("https://api.example.com");
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
-// ── Layer 3: Infrastructure - Messaging
+// -- Layer 3: Infrastructure - Messaging
 var mqttOptions = new MqttOptions();
 builder.Configuration.GetSection("Mqtt").Bind(mqttOptions);
 builder.Services.AddSingleton(mqttOptions);
 builder.Services.AddSingleton<IMessageBroker, MqttMessageBroker>();
 
-// ── Layer 2: CQRS Dispatcher
+// -- Layer 2: CQRS Dispatcher
 builder.Services.AddSingleton(sp => new CommandDispatcher(sp, maxConcurrency: 4));
 
-// ── Logging
+// -- Logging
 builder.Host.UseSerilog((ctx, cfg) => cfg
     .ReadFrom.Configuration(ctx.Configuration)
     .WriteTo.Console()
     .WriteTo.File("logs/app-.log", rollingInterval: RollingInterval.Day));
 
-// ── Build and map routes
+// -- Build and map routes
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -108,10 +108,10 @@ app.Run();
 
 ### Benefits
 
-- **One source of truth** – easy to see all dependencies at a glance
-- **No hidden wiring** – no magic DI setup scattered across classes
-- **Testability** – tests can mock the composition by swapping implementations
-- **Clarity** – dependencies are explicit and visible
+- **One source of truth** � easy to see all dependencies at a glance
+- **No hidden wiring** � no magic DI setup scattered across classes
+- **Testability** � tests can mock the composition by swapping implementations
+- **Clarity** � dependencies are explicit and visible
 
 ---
 
@@ -120,7 +120,7 @@ app.Run();
 Always inject dependencies via constructor:
 
 ```csharp
-// ✅ Correct
+// ? Correct
 public sealed class MyQueryHandler : IQueryHandler<GetDataQuery, DataDto>
 {
     private readonly IRepository _repo;
@@ -140,7 +140,7 @@ public sealed class MyQueryHandler : IQueryHandler<GetDataQuery, DataDto>
     }
 }
 
-// ❌ Wrong: Service locator pattern
+// ? Wrong: Service locator pattern
 public sealed class MyQueryHandler
 {
     public async Task<DataDto> HandleAsync(GetDataQuery query)
@@ -150,7 +150,7 @@ public sealed class MyQueryHandler
     }
 }
 
-// ❌ Wrong: Direct instantiation
+// ? Wrong: Direct instantiation
 public sealed class MyQueryHandler
 {
     public async Task<DataDto> HandleAsync(GetDataQuery query)
@@ -188,20 +188,20 @@ public sealed class MyService
 
 ## Scoped Services in Singleton Context
 
-⚠️ **Never inject a scoped service into a singleton** — this creates a "captive dependency":
+?? **Never inject a scoped service into a singleton** � this creates a "captive dependency":
 
 ```csharp
-// ❌ WRONG: Scoped service captured by singleton
+// ? WRONG: Scoped service captured by singleton
 builder.Services.AddSingleton(sp => 
 {
-    var repo = sp.GetRequiredService<IRepository>();  // ← Repo is scoped!
-    return new BackgroundProcessor(repo);               // ← But this is singleton!
+    var repo = sp.GetRequiredService<IRepository>();  // ? Repo is scoped!
+    return new BackgroundProcessor(repo);               // ? But this is singleton!
 });
 
-// ✅ CORRECT: Singleton creates its own scope per operation
+// ? CORRECT: Singleton creates its own scope per operation
 builder.Services.AddSingleton(sp =>
 {
-    return new BackgroundProcessor(sp);  // ← Pass provider, not service
+    return new BackgroundProcessor(sp);  // ? Pass provider, not service
 });
 
 public sealed class BackgroundProcessor : BackgroundService
@@ -373,7 +373,7 @@ public async Task GetData_ReturnsOk()
 When you need to resolve services manually (rare):
 
 ```csharp
-// ❌ Avoid: Manual resolution usually means design issue
+// ? Avoid: Manual resolution usually means design issue
 public sealed class MyClass
 {
     private readonly IServiceProvider _provider;
@@ -384,7 +384,7 @@ public sealed class MyClass
     }
 }
 
-// ✅ Prefer: Direct injection
+// ? Prefer: Direct injection
 public sealed class MyClass
 {
     private readonly IRepository _repo;
@@ -431,6 +431,6 @@ public sealed class BackgroundService
 
 ## See Also
 
-- **architecture.instructions.md** – Layer structure and responsibilities
-- **interface-first.instructions.md** – Designing contracts before implementations
-- **AGENTS.md** – Full system overview and conventions
+- **architecture.instructions.md** � Layer structure and responsibilities
+- **interface-first.instructions.md** � Designing contracts before implementations
+- **AGENTS.md** � Full system overview and conventions

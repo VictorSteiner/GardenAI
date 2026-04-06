@@ -1,4 +1,4 @@
-﻿# Automation Guide
+# Automation Guide
 
 This repository uses GitHub automation for CI, pull request hygiene, dependency updates, and alpha pre-releases.
 
@@ -6,7 +6,7 @@ This repository uses GitHub automation for CI, pull request hygiene, dependency 
 
 - `.github/workflows/ci.yml`
   - Runs on `pull_request` and `push` to `main`.
-  - Builds backend (`dotnet build HomeAssistant.sln`) and frontend (`npm run build` in `frontend/`).
+  - Builds backend (`dotnet build GardenAI.sln`) and frontend (`npm run build` in `frontend/`).
 
 - `.github/workflows/pr-title-conventional.yml`
   - Enforces Conventional Commit PR titles in the form `type(scope): description`.

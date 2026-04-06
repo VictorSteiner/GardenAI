@@ -1,5 +1,5 @@
-﻿---
-applyTo: "HomeAssistant.Infrastructure.Persistence/**/*.cs,HomeAssistant.Presentation/Program.cs,HomeAssistant.Presentation/appsettings*.json"
+---
+applyTo: "GardenAI.Infrastructure.Persistence/**/*.cs,GardenAI.Presentation/Program.cs,GardenAI.Presentation/appsettings*.json"
 ---
 
 # Persistence & EF Core Instructions
@@ -19,8 +19,8 @@ When schema-affecting changes are made (new entity, property, index, relationshi
 Use:
 
 ```powershell
-dotnet ef migrations add <MeaningfulName> --project HomeAssistant.Infrastructure.Persistence --startup-project HomeAssistant.Presentation
-dotnet ef database update --project HomeAssistant.Infrastructure.Persistence --startup-project HomeAssistant.Presentation
+dotnet ef migrations add <MeaningfulName> --project GardenAI.Infrastructure.Persistence --startup-project GardenAI.Presentation
+dotnet ef database update --project GardenAI.Infrastructure.Persistence --startup-project GardenAI.Presentation
 ```
 
 ## Non-Schema Changes
@@ -28,7 +28,7 @@ dotnet ef database update --project HomeAssistant.Infrastructure.Persistence --s
 If only query logic/repository logic changes and schema is untouched:
 
 - No migration is needed.
-- Still run `dotnet build HomeAssistant.sln`.
+- Still run `dotnet build GardenAI.sln`.
 
 ## Mapping Organization
 

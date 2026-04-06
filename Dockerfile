@@ -1,18 +1,18 @@
-﻿# Multi-stage build for .NET 10 backend (linux-arm64)
+# Multi-stage build for .NET 10 backend (linux-arm64)
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS builder
 WORKDIR /src
 
 # Copy solution and projects
-COPY ["HomeAssistant.sln", "."]
+COPY ["GardenAI.sln", "."]
 COPY ["Directory.Build.props", "Directory.Packages.props", "."]
-COPY ["HomeAssistant.Domain/", "HomeAssistant.Domain/"]
-COPY ["HomeAssistant.Application/", "HomeAssistant.Application/"]
-COPY ["HomeAssistant.Infrastructure.Persistence/", "HomeAssistant.Infrastructure.Persistence/"]
-COPY ["HomeAssistant.Infrastructure.Sensors/", "HomeAssistant.Infrastructure.Sensors/"]
-COPY ["HomeAssistant.Infrastructure.Messaging/", "HomeAssistant.Infrastructure.Messaging/"]
-COPY ["HomeAssistant.Infrastructure.HomeAssistant/", "HomeAssistant.Infrastructure.HomeAssistant/"]
-COPY ["HomeAssistant.Integrations.OpenMeteo/", "HomeAssistant.Integrations.OpenMeteo/"]
-COPY ["HomeAssistant.Presentation/", "HomeAssistant.Presentation/"]
+COPY ["GardenAI.Domain/", "GardenAI.Domain/"]
+COPY ["GardenAI.Application/", "GardenAI.Application/"]
+COPY ["GardenAI.Infrastructure.Persistence/", "GardenAI.Infrastructure.Persistence/"]
+COPY ["GardenAI.Infrastructure.Sensors/", "GardenAI.Infrastructure.Sensors/"]
+COPY ["GardenAI.Infrastructure.Messaging/", "GardenAI.Infrastructure.Messaging/"]
+COPY ["GardenAI.Infrastructure.GardenAI/", "GardenAI.Infrastructure.GardenAI/"]
+COPY ["GardenAI.Integrations.OpenMeteo/", "GardenAI.Integrations.OpenMeteo/"]
+COPY ["GardenAI.Presentation/", "GardenAI.Presentation/"]
 
 # Restore and publish self-contained for linux-arm64
 RUN dotnet restore
@@ -20,7 +20,7 @@ RUN dotnet publish -c Release -r linux-arm64 --self-contained true \
     -p:PublishTrimmed=true \
     -p:PublishReadyToRun=true \
     -o /app/publish \
-    HomeAssistant.Presentation/HomeAssistant.Presentation.csproj
+    GardenAI.Presentation/GardenAI.Presentation.csproj
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-arm64v8
@@ -33,5 +33,5 @@ COPY --from=builder /app/publish .
 
 EXPOSE 5064
 ENV ASPNETCORE_HTTP_PORTS=5064
-ENTRYPOINT ["./HomeAssistant.Presentation"]
+ENTRYPOINT ["./GardenAI.Presentation"]
 

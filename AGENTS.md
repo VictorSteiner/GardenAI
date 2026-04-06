@@ -1,4 +1,4 @@
-﻿# HomeAssistant – Agent Guide
+# GardenAI � Agent Guide
 
 ## Project Vision
 
@@ -15,10 +15,10 @@ The project follows **Clean Architecture** with strict layer separation:
 
 | Layer | Projects | Responsibility |
 |---|---|---|
-| Presentation | `HomeAssistant.Presentation` | HTTP API surface, request/response contracts, composition root |
-| Application | `HomeAssistant.Application` | Use case orchestration, CQRS dispatch, service configuration |
-| Domain | `HomeAssistant.Domain` | Business entities, repository interfaces, CQRS marker abstractions |
-| Infrastructure | `HomeAssistant.Infrastructure.*` | Persistence, external integrations, concrete implementations |
+| Presentation | `GardenAI.Presentation` | HTTP API surface, request/response contracts, composition root |
+| Application | `GardenAI.Application` | Use case orchestration, CQRS dispatch, service configuration |
+| Domain | `GardenAI.Domain` | Business entities, repository interfaces, CQRS marker abstractions |
+| Infrastructure | `GardenAI.Infrastructure.*` | Persistence, external integrations, concrete implementations |
 
 ### Layer Rules (Strict)
 
@@ -35,16 +35,16 @@ The project follows **Clean Architecture** with strict layer separation:
 
 Organize code by **domain concern**, not by technical type:
 
-**✅ Good:**
+**? Good:**
 ```
 Feature/
-  Entities/          ← core business objects
-  Abstractions/      ← repository/service contracts
-  Commands/          ← domain write operations
-  Queries/           ← domain read operations
+  Entities/          ? core business objects
+  Abstractions/      ? repository/service contracts
+  Commands/          ? domain write operations
+  Queries/           ? domain read operations
 ```
 
-**❌ Avoid:**
+**? Avoid:**
 ```
 Entities/
 Repositories/
@@ -130,18 +130,18 @@ public sealed class MyRepository : IMyRepository { ... }
 
 ## Conventions
 
-- **Minimal APIs only** – no MVC controllers; map routes in extension methods
-- **Typed Results** – all endpoints return `Results.Ok<T>()`, `Results.NotFound()`, etc. with `.Produces<T>()`
-- **Repository Pattern** – inject interfaces, never `new` concrete classes
-- **`record` types for DTOs** – define request/response models as immutable records
-- **Null Handling** – nullable reference types are disabled; enforce guard clauses and explicit validation at boundaries
-- **Async/Await throughout** – no `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()`
-- **Dependency Injection only** – all services resolved via constructor injection
-- **Configuration via DI** – options classes bound from `IConfiguration` in Program.cs
-- **Serilog for logging** – `ILogger<T>` injected everywhere, never `Console.WriteLine`
-- **Metrics via Meter** – track domain events with built-in `System.Diagnostics.Metrics`
-- **OpenAPI in Development only** – gates Swagger/Scalar behind environment check
-- **Linux-compatible** – no Windows APIs; target Linux arm64 (Raspberry Pi)
+- **Minimal APIs only** � no MVC controllers; map routes in extension methods
+- **Typed Results** � all endpoints return `Results.Ok<T>()`, `Results.NotFound()`, etc. with `.Produces<T>()`
+- **Repository Pattern** � inject interfaces, never `new` concrete classes
+- **`record` types for DTOs** � define request/response models as immutable records
+- **Null Handling** � nullable reference types are disabled; enforce guard clauses and explicit validation at boundaries
+- **Async/Await throughout** � no `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()`
+- **Dependency Injection only** � all services resolved via constructor injection
+- **Configuration via DI** � options classes bound from `IConfiguration` in Program.cs
+- **Serilog for logging** � `ILogger<T>` injected everywhere, never `Console.WriteLine`
+- **Metrics via Meter** � track domain events with built-in `System.Diagnostics.Metrics`
+- **OpenAPI in Development only** � gates Swagger/Scalar behind environment check
+- **Linux-compatible** � no Windows APIs; target Linux arm64 (Raspberry Pi)
 
 ---
 
@@ -150,12 +150,12 @@ public sealed class MyRepository : IMyRepository { ... }
 All feature work follows this gated pipeline:
 
 ```
-Architect (Plan) → Engineer (Implement) → Reviewer (Audit) → Git Commit
-     ↑                                           |
-     |                    🔴 Structural Issue    |
-     +─────── back to Architect ────────────────+
+Architect (Plan) ? Engineer (Implement) ? Reviewer (Audit) ? Git Commit
+     ?                                           |
+     |                    ?? Structural Issue    |
+     +------- back to Architect ----------------+
      
-     |                    🟡 Minor Issue ──→ Engineer (inline fix) ──→ Reviewer ──→ Git Commit
+     |                    ?? Minor Issue --? Engineer (inline fix) --? Reviewer --? Git Commit
 ```
 
 | Role | File | Responsibility |
@@ -209,25 +209,25 @@ Single docker-compose.yml defines all services:
 
 ## Key Principles (Non-Negotiable)
 
-1. **Clean Architecture Layers** – strict separation, downward-only dependencies
-2. **Interface-First Design** – define contracts before implementations
-3. **Dependency Injection** – compose everything in one place (Program.cs)
-4. **CQRS Discipline** – write operations via commands, read operations via queries
-5. **Repository Pattern** – all data access behind interfaces
-6. **No `new ConcreteService()`** – except in Program.cs, tests, or static factories
-7. **Async/Await Throughout** – no blocking calls
-8. **Null Safety** – nullable reference types disabled; use guard clauses and explicit validation at all boundaries
-9. **Serilog Everywhere** – structured logging, no Console.WriteLine
-10. **Testability First** – interfaces enable mocking and substitution
+1. **Clean Architecture Layers** � strict separation, downward-only dependencies
+2. **Interface-First Design** � define contracts before implementations
+3. **Dependency Injection** � compose everything in one place (Program.cs)
+4. **CQRS Discipline** � write operations via commands, read operations via queries
+5. **Repository Pattern** � all data access behind interfaces
+6. **No `new ConcreteService()`** � except in Program.cs, tests, or static factories
+7. **Async/Await Throughout** � no blocking calls
+8. **Null Safety** � nullable reference types disabled; use guard clauses and explicit validation at all boundaries
+9. **Serilog Everywhere** � structured logging, no Console.WriteLine
+10. **Testability First** � interfaces enable mocking and substitution
 
 ---
 
 ## See Also
 
-- **`.github/agents/architect.agent.md`** – Planning phase rules and templates
-- **`.github/agents/engineer.agent.md`** – Implementation rules and patterns
-- **`.github/agents/reviewer.agent.md`** – 13-point audit checklist
-- **`.github/agents/git-commit.agent.md`** – Commit message conventions
-- **`.github/instructions/architecture.instructions.md`** – Layer rules and patterns
-- **`.github/instructions/dependency-injection.instructions.md`** – DI composition patterns
-- **`.github/instructions/interface-first.instructions.md`** – Contract definition principles
+- **`.github/agents/architect.agent.md`** � Planning phase rules and templates
+- **`.github/agents/engineer.agent.md`** � Implementation rules and patterns
+- **`.github/agents/reviewer.agent.md`** � 13-point audit checklist
+- **`.github/agents/git-commit.agent.md`** � Commit message conventions
+- **`.github/instructions/architecture.instructions.md`** � Layer rules and patterns
+- **`.github/instructions/dependency-injection.instructions.md`** � DI composition patterns
+- **`.github/instructions/interface-first.instructions.md`** � Contract definition principles

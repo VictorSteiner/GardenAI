@@ -1,4 +1,4 @@
-﻿name: Auto-Merge PR
+name: Auto-Merge PR
 description: Automatically merges a pull request using rebase strategy when all relevant checks pass
 
 inputs:
@@ -42,20 +42,20 @@ runs:
         echo "$FILES"
         
         # Check if backend files changed
-        if echo "$FILES" | grep -qE '(HomeAssistant\.|\.csproj|Directory\.Packages\.props)'; then
+        if echo "$FILES" | grep -qE '(GardenAI\.|\.csproj|Directory\.Packages\.props)'; then
           BACKEND_CHANGED=true
-          echo "✅ Backend changes detected"
+          echo "? Backend changes detected"
         fi
         
         # Check if frontend files changed
         if echo "$FILES" | grep -qE 'frontend/'; then
           FRONTEND_CHANGED=true
-          echo "✅ Frontend changes detected"
+          echo "? Frontend changes detected"
         fi
         
         # If no changes detected in either, allow merge
         if [ "$BACKEND_CHANGED" = false ] && [ "$FRONTEND_CHANGED" = false ]; then
-          echo "ℹ️ No backend or frontend changes detected"
+          echo "?? No backend or frontend changes detected"
         fi
         
         echo "backend_changed=$BACKEND_CHANGED" >> $GITHUB_OUTPUT
@@ -75,19 +75,19 @@ runs:
         CHECK_OUTPUT=$(gh pr checks $PR_NUMBER --repo $REPO 2>/dev/null)
         
         # Count passing and failing checks
-        PASSING=$(echo "$CHECK_OUTPUT" | grep -c "✓" || true)
-        FAILING=$(echo "$CHECK_OUTPUT" | grep -c "✗" || true)
-        PENDING=$(echo "$CHECK_OUTPUT" | grep -c "●" || true)
+        PASSING=$(echo "$CHECK_OUTPUT" | grep -c "?" || true)
+        FAILING=$(echo "$CHECK_OUTPUT" | grep -c "?" || true)
+        PENDING=$(echo "$CHECK_OUTPUT" | grep -c "?" || true)
         
         echo "Status: $PASSING passing, $FAILING failing, $PENDING pending"
         echo "$CHECK_OUTPUT"
         
         if [ "$FAILING" -gt 0 ] || [ "$PENDING" -gt 0 ]; then
-          echo "❌ Not all checks have passed"
+          echo "? Not all checks have passed"
           exit 1
         fi
         
-        echo "✅ All checks passed!"
+        echo "? All checks passed!"
 
     - name: Merge PR (Rebase)
       shell: bash

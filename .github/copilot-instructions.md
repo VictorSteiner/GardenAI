@@ -1,4 +1,4 @@
-# Copilot Instructions – HomeAssistant Project
+# Copilot Instructions – GardenAI Project
 
 Welcome! This project uses a **four-agent workflow** for all feature development.
 
@@ -209,8 +209,8 @@ You can invoke `.github/agents/orchestrator.agent.md` to run the same gated sequ
 - **`.github/instructions/folder-organization.instructions.md`** – SOLID-friendly folder separation rules across all projects
 - **`.github/instructions/integrations.instructions.md`** – Integration adapter conventions (feature folders, no redundant nesting, one public type per file)
 - **`.github/instructions/git-commit.instructions.md`** – Conventional Commits type/scope table, examples, and safety rules
-- **`HomeAssistant.sln`** – Solution file; layer projects added here
-- **`HomeAssistant.Presentation/Program.cs`** – Sole composition root; all DI and routes
+- **`GardenAI.sln`** – Solution file; layer projects added here
+- **`GardenAI.Presentation/Program.cs`** – Sole composition root; all DI and routes
 
 ### Scoped Instruction Files
 
@@ -233,7 +233,7 @@ Topic-specific instruction files in `.github/instructions/` use the `*.instructi
 - ❌ Make decisions without user approval
 
 **Access Required:**
-- Read access to: `AGENTS.md`, `HomeAssistant.sln`, all project files
+- Read access to: `AGENTS.md`, `GardenAI.sln`, all project files
 - Must produce plan output in structured markdown format (see `architect.agent.md` for format)
 
 ---
@@ -299,25 +299,25 @@ Topic-specific instruction files in `.github/instructions/` use the `*.instructi
 
 ```powershell
 # Build solution
-dotnet build HomeAssistant.sln
+dotnet build GardenAI.sln
 
 # Run API locally (Development, mock sensors)
-dotnet run --project HomeAssistant.Presentation --launch-profile http
+dotnet run --project GardenAI.Presentation --launch-profile http
 
 # Add a new layer project
-dotnet new classlib -n HomeAssistant.<LayerName> -f net10.0
-dotnet sln add HomeAssistant.<LayerName>/HomeAssistant.<LayerName>.csproj
+dotnet new classlib -n GardenAI.<LayerName> -f net10.0
+dotnet sln add GardenAI.<LayerName>/GardenAI.<LayerName>.csproj
 
 # Add a NuGet package
-dotnet add HomeAssistant.Presentation package <PackageName>
+dotnet add GardenAI.Presentation package <PackageName>
 
 # Run EF Core migrations
 dotnet ef migrations add <Name> `
-  --project HomeAssistant.Infrastructure `
-  --startup-project HomeAssistant.Presentation
+  --project GardenAI.Infrastructure `
+  --startup-project GardenAI.Presentation
 dotnet ef database update `
-  --project HomeAssistant.Infrastructure `
-  --startup-project HomeAssistant.Presentation
+  --project GardenAI.Infrastructure `
+  --startup-project GardenAI.Presentation
 ```
 
 ---
