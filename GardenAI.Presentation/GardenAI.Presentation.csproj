@@ -16,6 +16,7 @@
       <ProjectReference Include="..\GardenAI.Infrastructure.Persistence\GardenAI.Infrastructure.Persistence.csproj" />
       <ProjectReference Include="..\GardenAI.Infrastructure.Messaging\GardenAI.Infrastructure.Messaging.csproj" />
       <ProjectReference Include="..\GardenAI.Integrations.OpenMeteo\GardenAI.Integrations.OpenMeteo.csproj" />
+      <ProjectReference Include="..\GardenAI.Infrastructure.HomeAssistant\GardenAI.Infrastructure.HomeAssistant.csproj" />
     </ItemGroup>
 
 </Project>
