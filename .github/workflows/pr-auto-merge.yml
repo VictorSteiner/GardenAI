@@ -1,7 +1,8 @@
 ﻿name: PR Auto-Merge
 
 on:
-  check_run:
+  workflow_run:
+    workflows: ["CI"]
     types: [completed]
 
 permissions:
@@ -12,14 +13,27 @@ jobs:
   auto-merge:
     name: Auto-Merge on Checks Pass
     runs-on: ubuntu-latest
-    if: github.event.check_run.conclusion == 'success'
+    if: github.event.workflow_run.conclusion == 'success'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Auto-Merge PR
-        uses: ./.github/actions/auto-merge-pr
         with:
-          pr_number: ${{ github.event.check_run.pull_requests[0].number }}
+          ref: ${{ github.event.workflow_run.head_branch }}
+
+      - name: Enable Auto-Merge
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the PR number from the workflow run
+          PR_NUMBER=$(gh api repos/${{ github.repository }}/commits/${{ github.event.workflow_run.head_commit }}/pulls --jq '.[0].number' 2>/dev/null || echo "")
+          
+          if [ -z "$PR_NUMBER" ]; then
+            echo "Could not find associated PR"
+            exit 0
+          fi
+          
+          echo "Enabling auto-merge for PR #$PR_NUMBER"
+          gh pr merge $PR_NUMBER --rebase --auto --delete-branch 2>/dev/null || echo "Auto-merge already enabled or merge not possible"
 
