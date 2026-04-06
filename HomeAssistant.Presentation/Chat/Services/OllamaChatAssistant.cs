@@ -50,7 +50,7 @@ public sealed class OllamaChatAssistant : HomeAssistant.Application.Chat.Abstrac
         }
         messages.Add(new OllamaMessage("user", request.Prompt));
 
-        return await CallOllamaForTextAsync(model, messages, null, ct);
+        return await CallOllamaForTextAsync(model, messages, [], ct);
     }
 
     /// <inheritdoc/>
@@ -149,7 +149,7 @@ public sealed class OllamaChatAssistant : HomeAssistant.Application.Chat.Abstrac
     private async Task<string> CallOllamaForTextAsync(
         string model,
         List<OllamaMessage> messages,
-        List<OllamaTool>? tools,
+        List<OllamaTool> tools,
         CancellationToken ct)
     {
         var payload = new OllamaChatRequest(model, messages, tools, Stream: false);
