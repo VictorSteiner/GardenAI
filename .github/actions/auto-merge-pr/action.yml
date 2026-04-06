@@ -1,0 +1,42 @@
+﻿name: Auto-Merge PR
+description: Automatically merges a pull request using rebase strategy when all checks pass
+
+runs:
+  using: composite
+  steps:
+    - name: Wait for Checks to Pass
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        PR_NUMBER=${{ github.event.pull_request.number }}
+        REPO=${{ github.repository }}
+        
+        # Wait up to 10 minutes for checks to complete and pass
+        TIMEOUT=600
+        ELAPSED=0
+        INTERVAL=10
+        
+        while [ $ELAPSED -lt $TIMEOUT ]; do
+          STATUS=$(gh pr checks $PR_NUMBER --repo $REPO --required)
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ All required checks passed!"
+            exit 0
+          fi
+          
+          echo "⏳ Waiting for checks... ($ELAPSED/$TIMEOUT seconds)"
+          sleep $INTERVAL
+          ELAPSED=$((ELAPSED + INTERVAL))
+        done
+        
+        echo "❌ Checks did not pass within timeout"
+        exit 1
+
+    - name: Merge PR (Rebase)
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh pr merge ${{ github.event.pull_request.number }} --rebase --auto --delete-branch
+
