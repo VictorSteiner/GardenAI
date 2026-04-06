@@ -4,7 +4,7 @@ using HomeAssistant.Domain.Common.Handlers;
 using HomeAssistant.Presentation.GardenAdvisor.Contracts;
 using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.GetDashboard;
+namespace HomeAssistant.Presentation.GardenAdvisor.GardenInsights.Endpoints.GetDashboard;
 
 /// <summary>Endpoint: GET /api/garden/pots/dashboard – Get dashboard aggregation across all rooms and pots.</summary>
 public sealed class GetDashboardEndpoint

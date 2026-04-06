@@ -2,7 +2,7 @@
 using HomeAssistant.Presentation.GardenAdvisor.Contracts;
 using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.GetAvailableRooms;
+namespace HomeAssistant.Presentation.GardenAdvisor.RoomInsights.Endpoints.GetAvailableRooms;
 
 /// <summary>Endpoint: GET /api/garden/rooms – Retrieve all available Home Assistant rooms (areas).</summary>
 public sealed class GetAvailableRoomsEndpoint

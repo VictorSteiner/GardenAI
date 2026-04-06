@@ -4,7 +4,7 @@ using HomeAssistant.Domain.Common.Handlers;
 using HomeAssistant.Presentation.GardenAdvisor.Contracts;
 using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.GetRoomSummary;
+namespace HomeAssistant.Presentation.GardenAdvisor.RoomInsights.Endpoints.GetRoomSummary;
 
 /// <summary>Endpoint: GET /api/garden/rooms/{roomAreaId}/summary – Get aggregated summary for a room.</summary>
 public sealed class GetRoomSummaryEndpoint
