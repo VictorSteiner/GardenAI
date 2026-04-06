@@ -1,4 +1,4 @@
-﻿namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostSavePotConfiguration.Contracts;
+﻿namespace HomeAssistant.Presentation.GardenAdvisor.PotManagement.Endpoints.PostSavePotConfiguration.Contracts;
 
 /// <summary>Request model for saving a pot's room assignment and seed configuration.</summary>
 public sealed record SavePotConfigurationRequest(

@@ -1,4 +1,4 @@
-﻿namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostSavePotConfiguration.Contracts;
+﻿namespace HomeAssistant.Presentation.GardenAdvisor.PotManagement.Endpoints.PostSavePotConfiguration.Contracts;
 
 /// <summary>Represents a single seed assignment submitted when saving a pot configuration.</summary>
 public sealed record SeedAssignmentRequest(

@@ -1,9 +1,9 @@
 ﻿using HomeAssistant.Application.PotConfigurations.Commands;
 using HomeAssistant.Application.Dispatching;
-using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostUpdateSeedStatus.Contracts;
+using HomeAssistant.Presentation.GardenAdvisor.PotManagement.Endpoints.PostUpdateSeedStatus.Contracts;
 using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostUpdateSeedStatus;
+namespace HomeAssistant.Presentation.GardenAdvisor.PotManagement.Endpoints.PostUpdateSeedStatus;
 
 /// <summary>Endpoint: POST /api/garden/pots/{potId}/seeds/{seedId}/status – Update a seed's lifecycle status.</summary>
 public sealed class PostUpdateSeedStatusEndpoint

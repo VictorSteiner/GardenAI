@@ -1,8 +1,8 @@
 ﻿using HomeAssistant.Domain.PotConfigurations.Abstractions;
-using HomeAssistant.Presentation.GardenAdvisor.Contracts;
+using HomeAssistant.Presentation.GardenAdvisor.PotManagement.Contracts;
 using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.GetPotConfiguration;
+namespace HomeAssistant.Presentation.GardenAdvisor.PotManagement.Endpoints.GetPotConfiguration;
 
 /// <summary>Endpoint to retrieve a pot's configuration (room + seeds).</summary>
 public sealed class GetPotConfigurationEndpoint

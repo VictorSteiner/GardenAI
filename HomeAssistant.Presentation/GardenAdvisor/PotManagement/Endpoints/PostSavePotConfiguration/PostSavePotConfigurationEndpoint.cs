@@ -1,13 +1,13 @@
 ﻿using HomeAssistant.Application.Dispatching;
 using HomeAssistant.Domain.PotConfigurations.Abstractions;
-using HomeAssistant.Presentation.GardenAdvisor.Contracts;
-using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostSavePotConfiguration.Contracts;
+using HomeAssistant.Presentation.GardenAdvisor.PotManagement.Contracts;
+using HomeAssistant.Presentation.GardenAdvisor.PotManagement.Endpoints.PostSavePotConfiguration.Contracts;
 using Microsoft.AspNetCore.Http.HttpResults;
 using SavePotConfigurationCommand = HomeAssistant.Application.PotConfigurations.Commands.SavePotConfigurationCommand;
 using SavePotConfigurationCommandRequest = HomeAssistant.Application.PotConfigurations.Commands.SavePotConfigurationRequest;
 using SeedAssignmentCommandRequest = HomeAssistant.Application.PotConfigurations.Commands.SeedAssignmentRequest;
 
-namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostSavePotConfiguration;
+namespace HomeAssistant.Presentation.GardenAdvisor.PotManagement.Endpoints.PostSavePotConfiguration;
 
 /// <summary>Endpoint to save/update a pot's configuration (room + seeds).</summary>
 public sealed class PostSavePotConfigurationEndpoint
