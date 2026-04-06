@@ -1,4 +1,7 @@
-﻿using HomeAssistant.Domain.Assistant.Entities;
+﻿using HomeAssistant.Domain.Area.Entities;
+using HomeAssistant.Domain.Assistant.Entities;
+using HomeAssistant.Domain.Device.Entities;
+using HomeAssistant.Domain.Entity.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace HomeAssistant.Infrastructure.Persistence.Database;
@@ -14,6 +17,15 @@ public sealed class AppDbContext : DbContext
 
     /// <summary>Persisted assistant chat messages.</summary>
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+
+    /// <summary>Home Assistant sync areas.</summary>
+    public DbSet<AreaEntity> Areas => Set<AreaEntity>();
+
+    /// <summary>Home Assistant sync devices.</summary>
+    public DbSet<DeviceEntity> Devices => Set<DeviceEntity>();
+
+    /// <summary>Home Assistant sync entities.</summary>
+    public DbSet<EntityRecord> Entities => Set<EntityRecord>();
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
