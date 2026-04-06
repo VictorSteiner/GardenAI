@@ -1,4 +1,4 @@
-﻿namespace HomeAssistant.Application.GardenAdvisor.Contracts;
+﻿namespace HomeAssistant.Application.GardenAdvisor.Contracts.Advice;
 
 /// <summary>Generated advisory summary for current pot readings and forecast context.</summary>
 public sealed record GardenAdviceResponse(

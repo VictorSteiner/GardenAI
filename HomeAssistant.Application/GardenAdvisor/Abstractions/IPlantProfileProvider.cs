@@ -1,4 +1,4 @@
-﻿using HomeAssistant.Application.GardenAdvisor.Contracts;
+﻿using HomeAssistant.Application.GardenAdvisor.Contracts.PlantProfiles;
 
 namespace HomeAssistant.Application.GardenAdvisor.Abstractions;
 

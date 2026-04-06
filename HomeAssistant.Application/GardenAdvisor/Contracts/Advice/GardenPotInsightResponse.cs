@@ -1,4 +1,4 @@
-﻿namespace HomeAssistant.Application.GardenAdvisor.Contracts;
+﻿namespace HomeAssistant.Application.GardenAdvisor.Contracts.Advice;
 
 /// <summary>Current insight snapshot for a single pot.</summary>
 public sealed record GardenPotInsightResponse(

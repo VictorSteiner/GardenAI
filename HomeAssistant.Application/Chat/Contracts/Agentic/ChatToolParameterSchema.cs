@@ -1,4 +1,4 @@
-﻿namespace HomeAssistant.Application.Chat.Contracts;
+﻿namespace HomeAssistant.Application.Chat.Contracts.Agentic;
 
 /// <summary>JSON-Schema fragment for a single tool parameter.</summary>
 public sealed record ChatToolParameterSchema(
