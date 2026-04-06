@@ -13,7 +13,9 @@
 
     <ItemGroup>
       <ProjectReference Include="..\HomeAssistant.Application\HomeAssistant.Application.csproj" />
-      <ProjectReference Include="..\HomeAssistant.Composition\HomeAssistant.Composition.csproj" />
+      <ProjectReference Include="..\HomeAssistant.Infrastructure.Persistence\HomeAssistant.Infrastructure.Persistence.csproj" />
+      <ProjectReference Include="..\HomeAssistant.Infrastructure.Messaging\HomeAssistant.Infrastructure.Messaging.csproj" />
+      <ProjectReference Include="..\HomeAssistant.Integrations.OpenMeteo\HomeAssistant.Integrations.OpenMeteo.csproj" />
     </ItemGroup>
 
 </Project>
