@@ -55,8 +55,8 @@ Complete **all** items before creating or approving the GitHub Release.
 
   ```bash
   dotnet ef database update \
-    --project HomeAssistant.Infrastructure.Persistence \
-    --startup-project HomeAssistant.Presentation
+    --project GardenAI.Infrastructure.Persistence \
+    --startup-project GardenAI.Presentation
   ```
 
 - [ ] If any migration is **destructive** (drops a column, renames a table), a data-backup step
@@ -89,11 +89,11 @@ docker compose up -d postgres mosquitto ollama
 
 # Apply migrations
 dotnet ef database update \
-  --project HomeAssistant.Infrastructure.Persistence \
-  --startup-project HomeAssistant.Presentation
+  --project GardenAI.Infrastructure.Persistence \
+  --startup-project GardenAI.Presentation
 
 # Run API
-dotnet run --project HomeAssistant.Presentation --launch-profile http
+dotnet run --project GardenAI.Presentation --launch-profile http
 
 # Verify OpenAPI schema loads
 curl -sf http://localhost:5064/openapi/v1.json | head -5
@@ -203,12 +203,12 @@ Or open `http://raspberrypi.local:3000` in a browser.
 # Subscribe to the sensor topics and verify messages arrive
 docker exec ha-mosquitto mosquitto_sub \
   -h localhost \
-  -t "homeassistant/#" \
+  -t "GardenAI/#" \
   -v \
   -C 1 \
   --keepalive 5
 # In production: expect real Zigbee2MQTT sensor messages (e.g. on zigbee2mqtt/pot-*/soil/update).
-# In development only: mock publisher also produces messages on homeassistant/test/mock-sensors/#.
+# In development only: mock publisher also produces messages on GardenAI/test/mock-sensors/#.
 # Expected: at least one message within 30 seconds.
 ```
 
@@ -216,11 +216,11 @@ docker exec ha-mosquitto mosquitto_sub \
 
 ```bash
 # Confirm postgres is accepting connections
-docker exec ha-postgres pg_isready -U ha_user -d homeassistant
-# Expected: "homeassistant:5432 - accepting connections"
+docker exec ha-postgres pg_isready -U ha_user -d GardenAI
+# Expected: "GardenAI:5432 - accepting connections"
 
 # Quick row-count sanity check (no destructive queries)
-docker exec ha-postgres psql -U ha_user -d homeassistant -c "\dt"
+docker exec ha-postgres psql -U ha_user -d GardenAI -c "\dt"
 ```
 
 ### 4.6 Image Version Confirmation
@@ -357,7 +357,7 @@ curl -sf http://raspberrypi.local:5064/health && echo "✅ Backend OK"
 curl -o /dev/null -sw "%{http_code}\n" http://raspberrypi.local:3000
 
 # 4. Database connectivity
-docker exec ha-postgres pg_isready -U ha_user -d homeassistant
+docker exec ha-postgres pg_isready -U ha_user -d GardenAI
 
 # 5. Confirm rolled-back image tag is running
 docker inspect ha-backend  | grep '"Image"'

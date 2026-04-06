@@ -1,17 +1,17 @@
-﻿---
-applyTo: "HomeAssistant.Integrations.*/**/*.cs,HomeAssistant.Integrations.*/**/*.csproj,HomeAssistant.Integrations.*/README.md"
+---
+applyTo: "GardenAI.Integrations.*/**/*.cs,GardenAI.Integrations.*/**/*.csproj,GardenAI.Integrations.*/README.md"
 ---
 
 # Integrations Instructions
 
 ## Scope
 
-These rules apply to external provider adapters under `HomeAssistant.Integrations.*` projects.
+These rules apply to external provider adapters under `GardenAI.Integrations.*` projects.
 
 ## Folder and Namespace Conventions
 
 - Use feature folders under the integration project (for example: `Forecast/`, `Plants/`).
-- Avoid redundant nested folders that duplicate the project name (for example: `HomeAssistant.Integrations.OpenMeteo/OpenMeteo/`).
+- Avoid redundant nested folders that duplicate the project name (for example: `GardenAI.Integrations.OpenMeteo/OpenMeteo/`).
 - Match namespaces to folder structure.
 - Within a feature, separate abstractions, contracts, clients, configuration objects, and exceptions into distinct subfolders when more than one responsibility exists.
 

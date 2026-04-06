@@ -1,5 +1,5 @@
-Ôªø---
-applyTo: "HomeAssistant.Presentation/Program.cs,HomeAssistant.Presentation/Endpoints/**/*.cs,HomeAssistant.Presentation/**/*.http"
+---
+applyTo: "GardenAI.Presentation/Program.cs,GardenAI.Presentation/Endpoints/**/*.cs,GardenAI.Presentation/**/*.http"
 ---
 
 # API Design Instructions
@@ -9,10 +9,10 @@ applyTo: "HomeAssistant.Presentation/Program.cs,HomeAssistant.Presentation/Endpo
 All HTTP endpoints use **ASP.NET Core Minimal APIs** defined in `Program.cs` or extension methods.
 
 ```csharp
-// ‚ùå Never use controller classes
+// ? Never use controller classes
 public class PlantPotsController : ControllerBase { }
 
-// ‚úÖ Use Minimal API endpoints
+// ? Use Minimal API endpoints
 app.MapGet("/pots", ...)
    .WithName("GetPlantPots")
    .Produces<IReadOnlyList<PlantPotResponse>>();
@@ -25,7 +25,7 @@ app.MapGet("/pots", ...)
 Every endpoint returns **typed results** with explicit type annotations for OpenAPI generation.
 
 ```csharp
-// ‚úÖ Correct
+// ? Correct
 app.MapGet("/pots/{id:guid}", async (Guid id, IQueryHandler<GetPotByIdQuery, PlantPotDto?> handler, CancellationToken ct) =>
 {
     var result = await handler.HandleAsync(new GetPotByIdQuery(id), ct);
@@ -38,10 +38,10 @@ app.MapGet("/pots/{id:guid}", async (Guid id, IQueryHandler<GetPotByIdQuery, Pla
 .WithName("GetPlantPotById")
 .WithOpenApi();
 
-// ‚ùå Wrong
+// ? Wrong
 app.MapGet("/pots/{id:guid}", (Guid id) => new { id, label = "test" });
 
-// ‚ùå Wrong
+// ? Wrong
 app.MapGet("/pots/{id:guid}", (Guid id) => Results.Ok(new { id }));
 ```
 
@@ -97,13 +97,13 @@ static async Task<IResult> HandleGetPotById(
 
 ### Metadata Annotations
 
-- `.Produces<T>()` ‚Äì Success response type and status code
-- `.ProducesProblem()` ‚Äì Error response types
-- `.WithName()` ‚Äì Operation ID for OpenAPI
-- `.WithOpenApi()` ‚Äì Include in OpenAPI schema
-- `.WithSummary()` ‚Äì Short description
-- `.WithDescription()` ‚Äì Detailed description
-- `.WithTags()` ‚Äì Grouping in API docs
+- `.Produces<T>()` ñ Success response type and status code
+- `.ProducesProblem()` ñ Error response types
+- `.WithName()` ñ Operation ID for OpenAPI
+- `.WithOpenApi()` ñ Include in OpenAPI schema
+- `.WithSummary()` ñ Short description
+- `.WithDescription()` ñ Detailed description
+- `.WithTags()` ñ Grouping in API docs
 
 ---
 
@@ -112,7 +112,7 @@ static async Task<IResult> HandleGetPotById(
 Keep `Program.cs` clean by using domain route builders and per-endpoint folders:
 
 ```csharp
-// HomeAssistant.Presentation/PlantPots/RouteBuilders/PlantPotRouteBuilder.cs
+// GardenAI.Presentation/PlantPots/RouteBuilders/PlantPotRouteBuilder.cs
 public static class PlantPotRouteBuilder
 {
     public static IEndpointRouteBuilder MapPlantPotRoutes(this IEndpointRouteBuilder endpoints)
@@ -129,7 +129,7 @@ public static class PlantPotRouteBuilder
     }
 }
 
-// HomeAssistant.Presentation/PlantPots/Endpoints/GetAllPlantPots/GetAllPlantPotsEndpoint.cs
+// GardenAI.Presentation/PlantPots/Endpoints/GetAllPlantPots/GetAllPlantPotsEndpoint.cs
 internal static class GetAllPlantPotsEndpoint
 {
     internal static RouteHandlerBuilder Map(RouteGroupBuilder group) =>
@@ -150,7 +150,7 @@ app.MapPlantPotRoutes();
 For a feature with multiple endpoints, prefer:
 
 ```text
-HomeAssistant.Presentation/<Domain>/
+GardenAI.Presentation/<Domain>/
   RouteBuilders/
     <Domain>RouteBuilder.cs
   Endpoints/
@@ -201,7 +201,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();  // /openapi/v1.json
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/openapi/v1.json", "HomeAssistant API v1");
+        c.SwaggerEndpoint("/openapi/v1.json", "GardenAI API v1");
     });
 }
 ```
@@ -210,7 +210,7 @@ if (app.Environment.IsDevelopment())
 
 ## .http Testing File
 
-Create `HomeAssistant.Presentation.http` for quick manual testing:
+Create `GardenAI.Presentation.http` for quick manual testing:
 
 ```http
 @HostAddress = http://localhost:5064
@@ -281,7 +281,7 @@ app.MapGet("/data", async (CancellationToken ct) =>
 
 ## See Also
 
-- **cqrs.instructions.md** ‚Äì How endpoints dispatch commands and queries
-- **dependency-injection.instructions.md** ‚Äì DI setup for handlers
-- **AGENTS.md** ‚Äì Logging and API conventions for the repository
+- **cqrs.instructions.md** ñ How endpoints dispatch commands and queries
+- **dependency-injection.instructions.md** ñ DI setup for handlers
+- **AGENTS.md** ñ Logging and API conventions for the repository
 

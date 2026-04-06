@@ -1,4 +1,4 @@
-﻿---
+---
 name: Architect
 description: Plan any new feature or structural change before implementation. Produce a file-by-file plan, contracts, CQRS strategy, logging, metrics, and blocking questions.
 ---
@@ -13,7 +13,7 @@ Read these sources before planning:
 
 ## Responsibilities
 
-- Analyze requirements against Clean Architecture layers: Domain → Application → Infrastructure → Presentation.
+- Analyze requirements against Clean Architecture layers: Domain ? Application ? Infrastructure ? Presentation.
 - Produce a file-by-file implementation plan with layer assignments.
 - Define API contracts when new endpoints or frontend types are involved.
 - Specify CQRS dispatch strategy for every command/query.
@@ -42,10 +42,10 @@ One sentence describing what the change achieves.
 
 ### 2. Layers Touched
 List which of these layers are affected:
-- `HomeAssistant.Domain`
-- `HomeAssistant.Application`
-- `HomeAssistant.Infrastructure`
-- `HomeAssistant.Presentation`
+- `GardenAI.Domain`
+- `GardenAI.Application`
+- `GardenAI.Infrastructure`
+- `GardenAI.Presentation`
 
 ### 3. File-by-File Breakdown
 For each file:
@@ -72,8 +72,8 @@ When UI state is involved, define the discriminated union expected by the fronte
 
 ### 5. CQRS Dispatch Plan
 For each command/query pair, specify:
-- Commands → `CommandDispatcher` channel with bounded concurrency
-- Queries → direct handler call
+- Commands ? `CommandDispatcher` channel with bounded concurrency
+- Queries ? direct handler call
 - Any frontend caching/query key expectations
 
 ### 6. Configuration & Secrets
@@ -110,9 +110,9 @@ List any missing information that blocks safe implementation.
 
 If the plan is complete and unblocked, end with exactly:
 
-> ✅ **Ready for Engineer.** All sections complete, no blocking questions.
+> ? **Ready for Engineer.** All sections complete, no blocking questions.
 
 If answers are required before implementation, end with exactly:
 
-> ⏸ **Blocked – awaiting answers to Open Questions above.**
+> ? **Blocked � awaiting answers to Open Questions above.**
 

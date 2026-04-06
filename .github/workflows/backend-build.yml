@@ -1,10 +1,10 @@
-﻿name: CI / Backend Build (.NET)
+name: CI / Backend Build (.NET)
 
 on:
   pull_request_target:
     branches: [main]
     paths:
-      - 'HomeAssistant*/**'
+      - 'GardenAI*/**'
       - '*.csproj'
       - 'Directory.Packages.props'
       - 'Directory.Build.props'
@@ -12,7 +12,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'HomeAssistant*/**'
+      - 'GardenAI*/**'
       - '*.csproj'
       - 'Directory.Packages.props'
       - 'Directory.Build.props'
@@ -36,8 +36,8 @@ jobs:
           dotnet-quality: preview
 
       - name: Restore
-        run: dotnet restore HomeAssistant.sln
+        run: dotnet restore GardenAI.sln
 
       - name: Build
-        run: dotnet build HomeAssistant.sln --configuration Release --no-restore
+        run: dotnet build GardenAI.sln --configuration Release --no-restore
 

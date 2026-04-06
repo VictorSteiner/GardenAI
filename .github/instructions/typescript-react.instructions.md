@@ -1,5 +1,5 @@
-﻿---
-applyTo: "HomeAssistant.Frontend/**/*.{ts,tsx},HomeAssistant.Presentation/ClientApp/**/*.{ts,tsx}"
+---
+applyTo: "GardenAI.Frontend/**/*.{ts,tsx},GardenAI.Presentation/ClientApp/**/*.{ts,tsx}"
 ---
 
 # TypeScript / React Instructions
@@ -43,14 +43,14 @@ export function PlantPotsPage() {
 Never use scattered `isLoading`, `error`, etc. Use **discriminated unions**:
 
 ```typescript
-// ✅ Correct
+// ? Correct
 type PlantPotsState =
   | { status: 'pending' }
   | { status: 'success'; data: PlantPotResponse[] }
   | { status: 'error'; error: Error }
   | { status: 'idle' };
 
-// ❌ Wrong
+// ? Wrong
 interface State {
   isLoading: boolean;
   isError: boolean;
@@ -85,7 +85,7 @@ export function PlantPotsPage() {
 
 ## Per-Page SignalR Hook
 
-Create a **separate SignalR hook per page** — never share a global connection:
+Create a **separate SignalR hook per page** � never share a global connection:
 
 ```typescript
 // hooks/useSensorHub.ts
@@ -184,12 +184,12 @@ declare module '@tanstack/react-router' {
 
 ## Strict Typing
 
-- ❌ Never use `any`
-- ❌ Never use `unknown` without a type guard
-- ✅ Always type API responses with interfaces/types
+- ? Never use `any`
+- ? Never use `unknown` without a type guard
+- ? Always type API responses with interfaces/types
 
 ```typescript
-// ✅ Correct
+// ? Correct
 interface PlantPotResponse {
   id: string;
   label: string;
@@ -208,7 +208,7 @@ export function usePlantPots() {
   });
 }
 
-// ❌ Wrong
+// ? Wrong
 export function usePlantPots() {
   return useQuery({
     queryKey: ['plant-pots'],
@@ -248,24 +248,24 @@ interface PlantPotResponse {
 
 ## Tailwind CSS
 
-- ✅ Use **utility classes only**
-- ❌ Never inline `style={{}}` for static styles
-- ✅ Use inline styles **only** for dynamic values (CSS custom properties)
+- ? Use **utility classes only**
+- ? Never inline `style={{}}` for static styles
+- ? Use inline styles **only** for dynamic values (CSS custom properties)
 
 ```typescript
-// ✅ Correct
+// ? Correct
 export function MoistureBar({ moisture }: { moisture: number }) {
   return (
     <div className="w-full bg-gray-200 rounded-full h-4">
       <div
         className="bg-blue-600 h-4 rounded-full transition-all"
-        style={{ width: `${moisture}%` }}  // ← Dynamic value
+        style={{ width: `${moisture}%` }}  // ? Dynamic value
       />
     </div>
   );
 }
 
-// ❌ Wrong
+// ? Wrong
 <div style={{ display: 'flex', flexDirection: 'column' }}>
   {/* Use className="flex flex-col" instead */}
 </div>
@@ -314,12 +314,12 @@ function PlantPotsContent({ state }: { state: PlantPotsState }) {
 
 ## No `react-router-dom`
 
-❌ Don't use `react-router-dom` — we use TanStack Router exclusively.
+? Don't use `react-router-dom` � we use TanStack Router exclusively.
 
 ---
 
 ## See Also
 
-- **api-design.instructions.md** – Backend endpoint contracts
-- **AGENTS.md** – Frontend stack and project-wide conventions
+- **api-design.instructions.md** � Backend endpoint contracts
+- **AGENTS.md** � Frontend stack and project-wide conventions
 

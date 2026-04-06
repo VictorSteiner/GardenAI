@@ -1,0 +1,114 @@
+### OpenAPI / Scalar
+GET http://localhost:5064/openapi/v1.json
+Accept: application/json
+
+###
+
+GET http://localhost:5064/scalar/v1
+Accept: text/html
+
+
+### ── Chat (stateless) ────────────────────────────────────────────────────────
+
+POST http://localhost:5064/api/chat
+Content-Type: application/json
+
+{
+  "prompt": "Give me a short watering checklist for tomato seedlings."
+}
+
+
+### ── Chat sessions ──────────────────────────────────────────────────────────
+
+POST http://localhost:5064/api/chat/sessions
+Content-Type: application/json
+
+{
+  "title": "Tomato planning",
+  "capability": "seed-planning"
+}
+
+###
+
+GET http://localhost:5064/api/chat/sessions?limit=20
+Accept: application/json
+
+###
+
+# Replace with a real GUID from the create session response above
+GET http://localhost:5064/api/chat/sessions/00000000-0000-0000-0000-000000000001
+Accept: application/json
+
+###
+
+# Replace with a real GUID from the create session response above
+POST http://localhost:5064/api/chat/sessions/00000000-0000-0000-0000-000000000001/messages
+Content-Type: application/json
+
+{
+  "prompt": "Given my current setup, when should I start sowing cucumbers?"
+}
+
+### ── Garden Planner Chat (AI + auto-save) ───────────────────────────────────
+
+# Ask a question – no action executed
+POST http://localhost:5064/api/garden/planner/chat
+Content-Type: application/json
+
+{
+  "message": "What would be a good plant to put in pot 3 given the current moisture levels?"
+}
+
+###
+
+# Planting intent – triggers SavePotConfigurationCommand automatically
+POST http://localhost:5064/api/garden/planner/chat
+Content-Type: application/json
+
+{
+  "message": "I'm planting basil and tomatoes today – basil in pot 1 in the living room, tomatoes in pot 2 on the balcony."
+}
+
+###
+
+# Multi-pot planting intent
+POST http://localhost:5064/api/garden/planner/chat
+Content-Type: application/json
+
+{
+  "message": "Set up pot 4 with cucumber Marketmore in the greenhouse, and pot 5 with lettuce Little Gem also in the greenhouse."
+}
+
+
+###
+
+
+### ── MQTT / Sensors (Development) ─────────────────────────────────────────────────────
+###
+### To test the MQTT + mock sensor flow locally on your PC:
+###
+### 1. Start services:
+###    docker compose up -d postgres mosquitto ollama
+###
+### 2. Start the GardenAI API (this terminal):
+###    dotnet run --project GardenAI.Presentation --launch-profile http
+###
+### 3. In another terminal, subscribe to mock readings:
+###    docker exec -it ha-mosquitto mosquitto_sub -h localhost -t 'GardenAI/test/mock-sensors/#' -v
+###
+### 4. Manual advisory summary topic:
+###    docker exec -it ha-mosquitto mosquitto_sub -h localhost -t 'GardenAI/garden/advice/summary' -v
+###
+### 5. In yet another terminal, poll sensor readings from the API:
+###    Repeatedly call: GET http://localhost:5064/api/sensors (once this endpoint is implemented)
+###
+### Each call to GetLatestReadingsAsync will:
+### - Generate 6 mock sensor readings (in Development mode)
+### - Publish them to MQTT topics: GardenAI/test/mock-sensors/<pot-id>
+### - You'll see them appear in the mosquitto_sub output above
+###
+### To verify the Zigbee2MQTT provider on a Pi with real hardware:
+### - Configure actual Zigbee2MQTT topics in appsettings.json under Mqtt:SensorTopicMappings
+### - Switch to Production build (which uses Zigbee2MqttSensorProvider instead of MockSensorProvider)
+### - The API will subscribe to those MQTT topics and cache incoming readings
+###

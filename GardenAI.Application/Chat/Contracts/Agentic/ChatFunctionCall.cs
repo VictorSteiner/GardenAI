@@ -1,0 +1,5 @@
+﻿namespace GardenAI.Application.Chat.Contracts.Agentic;
+
+/// <summary>A single function call the AI decided to make.</summary>
+public sealed record ChatFunctionCall(string FunctionName, string ArgumentsJson);
+

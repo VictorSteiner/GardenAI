@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+
+    <ItemGroup>
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+          <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Scalar.AspNetCore" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\GardenAI.Application\GardenAI.Application.csproj" />
+      <ProjectReference Include="..\GardenAI.Infrastructure.Persistence\GardenAI.Infrastructure.Persistence.csproj" />
+      <ProjectReference Include="..\GardenAI.Infrastructure.Messaging\GardenAI.Infrastructure.Messaging.csproj" />
+      <ProjectReference Include="..\GardenAI.Integrations.OpenMeteo\GardenAI.Integrations.OpenMeteo.csproj" />
+    </ItemGroup>
+
+</Project>

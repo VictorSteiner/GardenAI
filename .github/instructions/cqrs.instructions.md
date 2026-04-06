@@ -1,5 +1,5 @@
-﻿---
-applyTo: "HomeAssistant.Domain/Common/**/*.cs,HomeAssistant.Application/**/*.cs,HomeAssistant.Presentation/Program.cs,HomeAssistant.Presentation/Endpoints/**/*.cs"
+---
+applyTo: "GardenAI.Domain/Common/**/*.cs,GardenAI.Application/**/*.cs,GardenAI.Presentation/Program.cs,GardenAI.Presentation/Endpoints/**/*.cs"
 ---
 
 # CQRS Instructions
@@ -105,9 +105,9 @@ public sealed class CommandDispatcher : IAsyncDisposable
 
 ### Semaphore Rules
 
-- ✅ Initialize with **equal initialCount and maxCount**: `new SemaphoreSlim(4, 4)`
-- ✅ Release in a **finally** block — never only on happy path
-- ✅ Use **WaitAsync(ct)** — never blocking `.Wait()`
+- ? Initialize with **equal initialCount and maxCount**: `new SemaphoreSlim(4, 4)`
+- ? Release in a **finally** block � never only on happy path
+- ? Use **WaitAsync(ct)** � never blocking `.Wait()`
 
 ```csharp
 try
@@ -155,7 +155,7 @@ public sealed class GetPlantPotsQueryHandler : IQueryHandler<GetPlantPotsQuery, 
 
 ### Direct Call (No Channel)
 
-Queries are called **directly** from endpoints — no channel dispatch needed:
+Queries are called **directly** from endpoints � no channel dispatch needed:
 
 ```csharp
 // Endpoint calls handler directly
@@ -241,31 +241,31 @@ new BoundedChannelOptions(100)  // Max 100 queued commands
 }
 ```
 
-- **Bounded** (not unlimited) — prevents OOM on Pi
-- **Wait mode** — backpressure when queue full (safe for HTTP async)
-- **Capacity 100** — configurable based on system load
+- **Bounded** (not unlimited) � prevents OOM on Pi
+- **Wait mode** � backpressure when queue full (safe for HTTP async)
+- **Capacity 100** � configurable based on system load
 
 ---
 
-## Anti-Patterns ❌
+## Anti-Patterns ?
 
-❌ Calling command handler directly: `await handler.HandleAsync(cmd, ct);`  
-✅ Use dispatcher: `await dispatcher.DispatchAsync(cmd, ct);`
+? Calling command handler directly: `await handler.HandleAsync(cmd, ct);`  
+? Use dispatcher: `await dispatcher.DispatchAsync(cmd, ct);`
 
-❌ Mixing commands and queries in same handler  
-✅ Separate concerns: ICommandHandler<T> vs. IQueryHandler<T, R>
+? Mixing commands and queries in same handler  
+? Separate concerns: ICommandHandler<T> vs. IQueryHandler<T, R>
 
-❌ Awaiting dispatcher response  
-✅ Fire-and-forget: dispatcher is async background work
+? Awaiting dispatcher response  
+? Fire-and-forget: dispatcher is async background work
 
-❌ Using `.Result` or `.Wait()` on async code  
-✅ Use `await` throughout
+? Using `.Result` or `.Wait()` on async code  
+? Use `await` throughout
 
 ---
 
 ## See Also
 
-- **dependency-injection.instructions.md** – How handlers are registered and resolved
-- **api-design.instructions.md** – Endpoint patterns that dispatch commands and queries
-- **AGENTS.md** – Logging, metrics, and broader repository conventions
+- **dependency-injection.instructions.md** � How handlers are registered and resolved
+- **api-design.instructions.md** � Endpoint patterns that dispatch commands and queries
+- **AGENTS.md** � Logging, metrics, and broader repository conventions
 

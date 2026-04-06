@@ -42,7 +42,7 @@ homeassistant-config/blueprints/automation/homeassistant/
 homeassistant-config/blueprints/script/homeassistant/
 
 # appsettings with real credentials (use environment variables instead)
-HomeAssistant.Presentation/appsettings.Development.json
+GardenAI.Presentation/appsettings.Development.json
 
 # Node / frontend
 node_modules/

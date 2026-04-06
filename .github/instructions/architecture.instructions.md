@@ -1,5 +1,5 @@
-﻿---
-applyTo: "HomeAssistant.Domain/**/*.cs,HomeAssistant.Application/**/*.cs,HomeAssistant.Infrastructure.*/**/*.cs,HomeAssistant.Presentation/**/*.cs,HomeAssistant.*/*.csproj,HomeAssistant.sln"
+---
+applyTo: "GardenAI.Domain/**/*.cs,GardenAI.Application/**/*.cs,GardenAI.Infrastructure.*/**/*.cs,GardenAI.Presentation/**/*.cs,GardenAI.*/*.csproj,GardenAI.sln"
 ---
 
 # Architecture Instructions
@@ -9,25 +9,25 @@ applyTo: "HomeAssistant.Domain/**/*.cs,HomeAssistant.Application/**/*.cs,HomeAss
 The project follows **Clean Architecture** with four layers. Each layer has strict responsibilities and dependency rules.
 
 ```
-┌─────────────────────────────────────────────────┐
-│         Presentation Layer                      │
-│  (HTTP endpoints, composition root, routing)    │
-└────────────────────┬────────────────────────────┘
-                     ↓
-┌─────────────────────────────────────────────────┐
-│         Application Layer                       │
-│  (Use cases, CQRS dispatch, orchestration)      │
-└────────────────────┬────────────────────────────┘
-                     ↓
-┌─────────────────────────────────────────────────┐
-│         Domain Layer                            │
-│  (Entities, repository interfaces, values)      │
-└────────────────────┬────────────────────────────┘
-                     ↓
-┌─────────────────────────────────────────────────┐
-│         Infrastructure Layer                    │
-│  (EF Core, repos, external services, adapters)  │
-└─────────────────────────────────────────────────┘
++-------------------------------------------------+
+�         Presentation Layer                      �
+�  (HTTP endpoints, composition root, routing)    �
++-------------------------------------------------+
+                     ?
++-------------------------------------------------+
+�         Application Layer                       �
+�  (Use cases, CQRS dispatch, orchestration)      �
++-------------------------------------------------+
+                     ?
++-------------------------------------------------+
+�         Domain Layer                            �
+�  (Entities, repository interfaces, values)      �
++-------------------------------------------------+
+                     ?
++-------------------------------------------------+
+�         Infrastructure Layer                    �
+�  (EF Core, repos, external services, adapters)  �
++-------------------------------------------------+
 ```
 
 ### Layer Responsibilities
@@ -41,10 +41,10 @@ The project follows **Clean Architecture** with four layers. Each layer has stri
 
 ### Forbidden Dependencies
 
-- ❌ Presentation → Infrastructure (directly)
-- ❌ Application → Presentation or Infrastructure
-- ❌ Domain → Presentation, Application, or Infrastructure
-- ❌ Infrastructure → Presentation or Application
+- ? Presentation ? Infrastructure (directly)
+- ? Application ? Presentation or Infrastructure
+- ? Domain ? Presentation, Application, or Infrastructure
+- ? Infrastructure ? Presentation or Application
 
 ---
 
@@ -55,7 +55,7 @@ Organize **all** code by **domain concern** (feature), not by technical type.
 ### Principle: Group by "What" not "How"
 
 ```
-✅ Feature-based (Domain Concern)
+? Feature-based (Domain Concern)
 Feature1/
   Entities/
     BusinessObject.cs
@@ -68,7 +68,7 @@ Feature1/
 ```
 
 ```
-❌ Type-based (Technical Layer)
+? Type-based (Technical Layer)
 Entities/
   BusinessObject.cs
 Abstractions/
@@ -210,7 +210,7 @@ app.Run();
 
 ### No `new` Outside Composition Root
 
-**✅ Correct:**
+**? Correct:**
 ```csharp
 public sealed class MyService
 {
@@ -219,13 +219,13 @@ public sealed class MyService
 }
 ```
 
-**❌ Wrong:**
+**? Wrong:**
 ```csharp
 public sealed class MyService
 {
     public MyService()
     {
-        var repo = new ConcreteRepository();  // ❌ DO NOT DO THIS
+        var repo = new ConcreteRepository();  // ? DO NOT DO THIS
     }
 }
 ```
@@ -269,9 +269,9 @@ public sealed class MyService
 
 ### Configuration Sources
 
-1. **appsettings.json** – Non-sensitive configuration
-2. **appsettings.{Environment}.json** – Environment-specific overrides
-3. **Environment variables** – Secrets, secrets management
+1. **appsettings.json** � Non-sensitive configuration
+2. **appsettings.{Environment}.json** � Environment-specific overrides
+3. **Environment variables** � Secrets, secrets management
 
 **Never commit secrets.** Use environment variable injection in production.
 
@@ -343,7 +343,7 @@ using var context = new MyDbContext(options);
 ### Repository Interface Lives in Domain
 
 ```csharp
-// HomeAssistant.Domain/MyFeature/Abstractions/IMyRepository.cs
+// GardenAI.Domain/MyFeature/Abstractions/IMyRepository.cs
 public interface IMyRepository
 {
     Task<MyEntity?> GetByIdAsync(Guid id, CancellationToken ct = default);
@@ -357,7 +357,7 @@ public interface IMyRepository
 ### Repository Implementation Lives in Infrastructure
 
 ```csharp
-// HomeAssistant.Infrastructure.Persistence/MyFeature/Repositories/MyRepository.cs
+// GardenAI.Infrastructure.Persistence/MyFeature/Repositories/MyRepository.cs
 public sealed class MyRepository : IMyRepository
 {
     private readonly MyDbContext _context;

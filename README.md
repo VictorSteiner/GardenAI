@@ -1,4 +1,4 @@
-﻿# HomeAssistant Garden Add-on
+# GardenAI Garden Add-on
 
 Standalone garden automation add-on designed to run next to Home Assistant (typically on a Raspberry Pi). It consumes sensor data via MQTT, stores data in PostgreSQL, and offers a chat and automation API powered by Ollama.
 
@@ -33,13 +33,13 @@ docker compose --profile init run --rm ollama-pull
 ## 2) Apply database migrations
 
 ```powershell
-dotnet ef database update --project HomeAssistant.Infrastructure.Persistence --startup-project HomeAssistant.Presentation
+dotnet ef database update --project GardenAI.Infrastructure.Persistence --startup-project GardenAI.Presentation
 ```
 
 ## 3) Run the add-on API locally
 
 ```powershell
-dotnet run --project HomeAssistant.Presentation --launch-profile http
+dotnet run --project GardenAI.Presentation --launch-profile http
 ```
 
 API URLs (Development):
@@ -51,19 +51,19 @@ API URLs (Development):
 
 ### Option A: built-in mock publisher (recommended)
 
-`HomeAssistant.Presentation/appsettings.Development.json` already enables:
+`GardenAI.Presentation/appsettings.Development.json` already enables:
 
 - `Mqtt.PublishMockReadings = true`
 - `Mqtt.MockPublishIntervalSeconds = 10`
 
 When the API runs in `Development`, `MockSensorProvider` publishes readings for the configured pot identity map to:
 
-- `homeassistant/test/mock-sensors/<pot-guid>`
+- `GardenAI/test/mock-sensors/<pot-guid>`
 
 Watch messages:
 
 ```powershell
-docker exec -it ha-mosquitto mosquitto_sub -h localhost -t "homeassistant/test/mock-sensors/#" -v
+docker exec -it ha-mosquitto mosquitto_sub -h localhost -t "GardenAI/test/mock-sensors/#" -v
 ```
 
 ### Option B: manually publish Zigbee-like messages
@@ -101,11 +101,11 @@ mqtt:
 
 ```powershell
 docker compose up -d postgres mosquitto ollama
-dotnet ef database update --project HomeAssistant.Infrastructure.Persistence --startup-project HomeAssistant.Presentation
-dotnet run --project HomeAssistant.Presentation --launch-profile http
+dotnet ef database update --project GardenAI.Infrastructure.Persistence --startup-project GardenAI.Presentation
+dotnet run --project GardenAI.Presentation --launch-profile http
 ```
 
-Then use `HomeAssistant.Presentation/HomeAssistant.Presentation.http` for quick endpoint checks.
+Then use `GardenAI.Presentation/GardenAI.Presentation.http` for quick endpoint checks.
 
 ## Raspberry Pi deployment notes
 
