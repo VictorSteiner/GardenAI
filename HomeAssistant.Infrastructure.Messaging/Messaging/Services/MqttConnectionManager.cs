@@ -20,13 +20,21 @@ public sealed class MqttConnectionManager : IAsyncDisposable
 {
     private readonly AppMqttOptions _options;
     private readonly ILogger<MqttConnectionManager> _logger;
+    private readonly SemaphoreSlim _connectionGate = new(1, 1);
     private NetMqttClient? _client;
+    private bool _isStopping;
 
     /// <summary>The connected raw MQTTnet client. <c>null</c> before first connect.</summary>
     public NetMqttClient? Client => _client;
 
     /// <summary>Whether the client is currently connected to the broker.</summary>
     public bool IsConnected { get; private set; }
+
+    /// <summary>
+    /// Whether shutdown/disconnect was requested intentionally.
+    /// Reconnect policy uses this to avoid reconnect attempts during normal shutdown.
+    /// </summary>
+    public bool IsStopping => _isStopping;
 
     /// <summary>Raised when a connection to the broker is successfully established.</summary>
     public event Func<MqttClientConnectedEventArgs, Task>? Connected;
@@ -40,8 +48,11 @@ public sealed class MqttConnectionManager : IAsyncDisposable
     /// <summary>Initialises the connection manager with broker options and a logger.</summary>
     public MqttConnectionManager(AppMqttOptions options, ILogger<MqttConnectionManager> logger)
     {
-        _options = options ?? throw new ArgumentNullException(nameof(options));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(logger);
+
+        _options = options;
+        _logger = logger;
     }
 
     /// <summary>
@@ -50,33 +61,22 @@ public sealed class MqttConnectionManager : IAsyncDisposable
     /// <param name="ct">Cancellation token.</param>
     public async Task ConnectAsync(CancellationToken ct = default)
     {
+        await _connectionGate.WaitAsync(ct);
         try
         {
-            _logger.LogInformation("Connecting to MQTT broker at {Host}:{Port}...", _options.Host, _options.Port);
+            _isStopping = false;
 
-            var factory = new MqttFactory();
-            var clientOptionsBuilder = new MqttClientOptionsBuilder()
-                .WithTcpServer(_options.Host, _options.Port)
-                .WithClientId(_options.ClientId)
-                .WithCleanSession(true)
-                .WithKeepAlivePeriod(TimeSpan.FromSeconds(_options.KeepAliveSeconds));
+            if (_client is null)
+                _client = CreateAndWireClient();
 
-            if (!string.IsNullOrEmpty(_options.Username))
-                clientOptionsBuilder.WithCredentials(_options.Username, _options.Password ?? string.Empty);
-
-            _client = factory.CreateMqttClient();
-
-            // Forward raw MQTTnet events to this manager's events.
-            _client.ConnectedAsync += e => Connected?.Invoke(e) ?? Task.CompletedTask;
-            _client.DisconnectedAsync += e =>
+            if (_client.IsConnected)
             {
-                IsConnected = false;
-                return Disconnected?.Invoke(e) ?? Task.CompletedTask;
-            };
-            _client.ApplicationMessageReceivedAsync += e =>
-                ApplicationMessageReceived?.Invoke(e) ?? Task.CompletedTask;
+                IsConnected = true;
+                return;
+            }
 
-            await _client.ConnectAsync(clientOptionsBuilder.Build(), ct);
+            _logger.LogInformation("Connecting to MQTT broker at {Host}:{Port}...", _options.Host, _options.Port);
+            await _client.ConnectAsync(BuildClientOptions(), ct);
 
             IsConnected = true;
             _logger.LogInformation("Successfully connected to MQTT broker.");
@@ -87,27 +87,78 @@ public sealed class MqttConnectionManager : IAsyncDisposable
             _logger.LogError(ex, "Failed to connect to MQTT broker.");
             throw;
         }
+        finally
+        {
+            _connectionGate.Release();
+        }
     }
 
     /// <summary>Gracefully closes the active connection to the broker.</summary>
     /// <param name="ct">Cancellation token.</param>
     public async Task DisconnectAsync(CancellationToken ct = default)
     {
+        await _connectionGate.WaitAsync(ct);
         try
         {
-            if (_client is not null && IsConnected)
+            _isStopping = true;
+
+            if (_client is null)
             {
-                _logger.LogInformation("Disconnecting from MQTT broker...");
-                await _client.DisconnectAsync(null, ct);
                 IsConnected = false;
-                _logger.LogInformation("Successfully disconnected from MQTT broker.");
+                return;
             }
+
+            if (!_client.IsConnected)
+            {
+                IsConnected = false;
+                return;
+            }
+
+            _logger.LogInformation("Disconnecting from MQTT broker...");
+            await _client.DisconnectAsync(null, ct);
+            IsConnected = false;
+            _logger.LogInformation("Successfully disconnected from MQTT broker.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error while disconnecting from MQTT broker.");
             throw;
         }
+        finally
+        {
+            _connectionGate.Release();
+        }
+    }
+
+    private NetMqttClient CreateAndWireClient()
+    {
+        var client = new MqttFactory().CreateMqttClient();
+
+        // Forward raw MQTTnet events to this manager's events.
+        client.ConnectedAsync += e => Connected?.Invoke(e) ?? Task.CompletedTask;
+        client.DisconnectedAsync += e =>
+        {
+            IsConnected = false;
+            return Disconnected?.Invoke(e) ?? Task.CompletedTask;
+        };
+        client.ApplicationMessageReceivedAsync += e =>
+            ApplicationMessageReceived?.Invoke(e) ?? Task.CompletedTask;
+
+        return client;
+    }
+
+    private MQTTnet.Client.MqttClientOptions BuildClientOptions()
+    {
+        var builder = new MqttClientOptionsBuilder()
+            .WithTcpServer(_options.Host, _options.Port)
+            .WithClientId(_options.ClientId)
+            .WithCleanSession(true)
+            .WithKeepAlivePeriod(TimeSpan.FromSeconds(_options.KeepAliveSeconds));
+
+        if (!string.IsNullOrEmpty(_options.Username))
+            builder.WithCredentials(_options.Username, _options.Password ?? string.Empty);
+
+        return builder.Build();
     }
 
     /// <inheritdoc/>
@@ -115,15 +166,21 @@ public sealed class MqttConnectionManager : IAsyncDisposable
     {
         try
         {
+            await DisconnectAsync();
+
             if (_client is not null)
             {
-                await DisconnectAsync();
                 _client.Dispose();
+                _client = null;
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error disposing MQTT connection manager.");
+        }
+        finally
+        {
+            _connectionGate.Dispose();
         }
     }
 }

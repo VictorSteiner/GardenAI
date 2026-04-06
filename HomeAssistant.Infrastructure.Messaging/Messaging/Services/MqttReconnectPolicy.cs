@@ -6,16 +6,17 @@ using AppMqttOptions = HomeAssistant.Application.Messaging.Configuration.MqttCli
 namespace HomeAssistant.Infrastructure.Messaging.Messaging.Services;
 
 /// <summary>
-/// Handles the reconnection/backoff concern for the MQTT client.
-/// Subscribes to <see cref="MqttConnectionManager.Disconnected"/> and tracks reconnection
-/// state. This class is the designated future home for exponential backoff and
-/// auto-reconnect logic.
+/// Handles reconnection/backoff for the MQTT client.
+/// Subscribes to <see cref="MqttConnectionManager.Disconnected"/> and starts a reconnect
+/// loop for unexpected disconnects.
 /// </summary>
 public sealed class MqttReconnectPolicy
 {
+    private readonly MqttConnectionManager _connectionManager;
     private readonly AppMqttOptions _options;
     private readonly ILogger<MqttReconnectPolicy> _logger;
-    private int _reconnectAttempts;
+    private readonly SemaphoreSlim _reconnectLoopGate = new(1, 1);
+    private readonly Random _random = new();
 
     /// <summary>
     /// Initialises the reconnect policy and attaches to the connection manager's
@@ -27,38 +28,109 @@ public sealed class MqttReconnectPolicy
         ILogger<MqttReconnectPolicy> logger)
     {
         ArgumentNullException.ThrowIfNull(connectionManager);
-        _options = options ?? throw new ArgumentNullException(nameof(options));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(logger);
 
-        connectionManager.Disconnected += OnDisconnectedAsync;
+        _connectionManager = connectionManager;
+        _options = options;
+        _logger = logger;
+
+        _connectionManager.Disconnected += OnDisconnectedAsync;
     }
 
     /// <summary>
-    /// Handles a disconnection event from the broker.
-    /// Normal disconnections are logged at Information level; unexpected ones increment
-    /// the reconnect counter and emit a warning with the attempt number.
+    /// Handles disconnection events.
+    /// Normal disconnections (or explicit shutdown) are ignored by auto-reconnect.
+    /// Unexpected disconnections start a background reconnect loop.
     /// </summary>
     private Task OnDisconnectedAsync(MqttClientDisconnectedEventArgs args)
     {
-        if (args.Reason == MqttClientDisconnectReason.NormalDisconnection)
+        var isNormal = args.Reason == MqttClientDisconnectReason.NormalDisconnection;
+        if (isNormal || _connectionManager.IsStopping)
         {
-            _logger.LogInformation("MQTT client disconnected normally.");
-        }
-        else
-        {
-            _reconnectAttempts++;
-            _logger.LogWarning(
-                "MQTT client disconnected unexpectedly (attempt #{Attempt}, delay {Delay}s). Reason: {Reason}. Exception: {Exception}",
-                _reconnectAttempts,
-                _options.ReconnectDelaySeconds,
-                args.Reason,
-                args.Exception?.Message);
-
-            MqttMetrics.ReconnectionAttempts.Add(1);
-
-            // TODO: implement exponential backoff + auto-reconnect here.
+            _logger.LogInformation("MQTT client disconnected intentionally or normally.");
+            return Task.CompletedTask;
         }
 
+        if (!_options.EnableAutoReconnect)
+        {
+            _logger.LogInformation("MQTT auto-reconnect is disabled. Skipping reconnect loop.");
+            return Task.CompletedTask;
+        }
+
+        _ = Task.Run(RunReconnectLoopAsync);
         return Task.CompletedTask;
+    }
+
+    private async Task RunReconnectLoopAsync()
+    {
+        if (!await _reconnectLoopGate.WaitAsync(0))
+            return;
+
+        try
+        {
+            var attempt = 0;
+
+            while (!_connectionManager.IsStopping && !_connectionManager.IsConnected)
+            {
+                attempt++;
+
+                if (_options.MaxReconnectAttempts > 0 && attempt > _options.MaxReconnectAttempts)
+                {
+                    _logger.LogError("Reached max reconnect attempts ({MaxAttempts}). Giving up.", _options.MaxReconnectAttempts);
+                    break;
+                }
+
+                var delay = CalculateDelay(attempt);
+                MqttMetrics.ReconnectionAttempts.Add(1);
+
+                _logger.LogWarning(
+                    "MQTT disconnected unexpectedly. Reconnect attempt #{Attempt} in {DelayMs} ms.",
+                    attempt,
+                    (int)delay.TotalMilliseconds);
+
+                try
+                {
+                    await Task.Delay(delay);
+
+                    if (_connectionManager.IsStopping)
+                        break;
+
+                    await _connectionManager.ConnectAsync();
+
+                    if (_connectionManager.IsConnected)
+                    {
+                        MqttMetrics.ReconnectionSucceeded.Add(1);
+                        _logger.LogInformation("MQTT reconnect succeeded after {AttemptCount} attempts.", attempt);
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MqttMetrics.ReconnectionFailed.Add(1);
+                    _logger.LogWarning(ex, "MQTT reconnect attempt #{Attempt} failed.", attempt);
+                }
+            }
+        }
+        finally
+        {
+            _reconnectLoopGate.Release();
+        }
+    }
+
+    private TimeSpan CalculateDelay(int attempt)
+    {
+        var baseSeconds = Math.Max(1, _options.ReconnectDelaySeconds);
+        var maxSeconds = Math.Max(baseSeconds, _options.MaxReconnectDelaySeconds);
+        var jitterPercent = Math.Clamp(_options.ReconnectJitterPercent, 0, 100);
+
+        var exponentialSeconds = Math.Min(maxSeconds, baseSeconds * Math.Pow(2, attempt - 1));
+        var jitterRangeSeconds = exponentialSeconds * jitterPercent / 100d;
+        var jitterSeconds = jitterRangeSeconds <= 0
+            ? 0
+            : (_random.NextDouble() * 2d * jitterRangeSeconds) - jitterRangeSeconds;
+
+        var finalSeconds = Math.Clamp(exponentialSeconds + jitterSeconds, 1, maxSeconds);
+        return TimeSpan.FromSeconds(finalSeconds);
     }
 }

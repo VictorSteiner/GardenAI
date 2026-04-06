@@ -18,12 +18,19 @@ internal static class MqttMetrics
     internal static readonly Counter<long> MessagesReceived =
         MeterInstance.CreateCounter<long>("mqtt.messages.received");
 
-    /// <summary>Number of unexpected disconnection events that triggered a reconnect.</summary>
+    /// <summary>Number of unexpected disconnection events that triggered a reconnect attempt.</summary>
     internal static readonly Counter<long> ReconnectionAttempts =
         MeterInstance.CreateCounter<long>("mqtt.reconnection.attempts");
+
+    /// <summary>Number of reconnect loops that eventually restored connectivity.</summary>
+    internal static readonly Counter<long> ReconnectionSucceeded =
+        MeterInstance.CreateCounter<long>("mqtt.reconnection.succeeded");
+
+    /// <summary>Number of reconnect attempts that failed due to errors.</summary>
+    internal static readonly Counter<long> ReconnectionFailed =
+        MeterInstance.CreateCounter<long>("mqtt.reconnection.failed");
 
     /// <summary>Number of connection attempts that resulted in an exception.</summary>
     internal static readonly Counter<long> ConnectionFailures =
         MeterInstance.CreateCounter<long>("mqtt.connection.failures");
 }
-

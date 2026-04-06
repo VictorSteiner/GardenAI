@@ -30,9 +30,15 @@ public sealed class MqttClientService : AppMqttClient, IAsyncDisposable
         MqttReconnectPolicy reconnectPolicy,
         ILogger<MqttClientService> logger)
     {
-        _connectionManager = connectionManager ?? throw new ArgumentNullException(nameof(connectionManager));
-        _ = reconnectPolicy ?? throw new ArgumentNullException(nameof(reconnectPolicy));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        ArgumentNullException.ThrowIfNull(connectionManager);
+        ArgumentNullException.ThrowIfNull(reconnectPolicy);
+        ArgumentNullException.ThrowIfNull(logger);
+
+        _connectionManager = connectionManager;
+        _logger = logger;
+
+        // Keep policy dependency alive through DI and constructor graph.
+        _ = reconnectPolicy;
 
         // Wire event handlers once at construction time.
         _connectionManager.Connected += OnConnectedAsync;

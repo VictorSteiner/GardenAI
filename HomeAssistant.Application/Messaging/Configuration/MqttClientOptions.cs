@@ -23,8 +23,20 @@ public sealed class MqttClientOptions
     /// <summary>Keep-alive interval in seconds.</summary>
     public int KeepAliveSeconds { get; set; } = 60;
 
-    /// <summary>Reconnection delay in seconds.</summary>
-    public int ReconnectDelaySeconds { get; set; } = 5;
+    /// <summary>Initial reconnection delay in seconds.</summary>
+    public int ReconnectDelaySeconds { get; set; } = 1;
+
+    /// <summary>Maximum reconnection delay in seconds.</summary>
+    public int MaxReconnectDelaySeconds { get; set; } = 60;
+
+    /// <summary>Random jitter added to each delay (0-100 percent).</summary>
+    public int ReconnectJitterPercent { get; set; } = 20;
+
+    /// <summary>Maximum reconnect attempts. Use 0 for unlimited retries.</summary>
+    public int MaxReconnectAttempts { get; set; } = 0;
+
+    /// <summary>Whether automatic reconnect should run after unexpected disconnects.</summary>
+    public bool EnableAutoReconnect { get; set; } = true;
 
     /// <summary>Connection timeout in seconds.</summary>
     public int ConnectionTimeoutSeconds { get; set; } = 10;
@@ -41,4 +53,3 @@ public sealed class MqttClientOptions
     /// <summary>Map of Zigbee device IDs to pot IDs.</summary>
     public Dictionary<string, string> SensorTopicMappings { get; set; } = [];
 }
-
