@@ -53,30 +53,137 @@ Use these subfolders when a feature contains multiple responsibility kinds:
 ### Presentation
 - Separate endpoint contracts from service implementations and abstractions.
 - Avoid placing request/response contracts in the same folder as concrete service implementations unless the feature is still trivially small.
-- When a feature exposes multiple HTTP endpoints, introduce a `RouteBuilders/` folder with a `<Domain>RouteBuilder` entry point.
+- When a feature exposes multiple HTTP endpoints across distinct domain intents, decompose into **domain slices** (see Domain-Sliced Endpoint Structure below).
 - Place each endpoint in its own folder under `Endpoints/<EndpointName>/` instead of flattening multiple endpoint files into one folder.
 - Place endpoint-specific request/response contracts under the endpoint folder, for example `Endpoints/<EndpointName>/Contracts/`.
 - Keep shared presentation contracts only for models reused across multiple endpoints.
+- Internal AI tool / protocol function endpoints belong in a dedicated `ProtocolTools/` slice — do not mix them into domain-facing endpoint folders.
+
+## Domain-Sliced Endpoint Structure
+
+When a presentation feature grows to span distinct domain responsibilities (for example: planning, pot management, room queries, advice, internal tools), split it into **domain slices** rather than broadening a single feature folder.
+
+### Folder Pattern
+
+Each domain slice owns its routes, endpoints, and feature-local contracts:
+
+```text
+HomeAssistant.Presentation/<Feature>/
+  RouteBuilders/
+    <Feature>RouteBuilder.cs            ← aggregator: calls each slice's Map*Routes()
+    <Slice1>RouteBuilder.cs             ← e.g. GardenPlanningRouteBuilder.cs
+    <Slice2>RouteBuilder.cs             ← e.g. PotManagementRouteBuilder.cs
+    <Slice3>RouteBuilder.cs             ← e.g. ProtocolToolsRouteBuilder.cs
+  <Slice1>/
+    Endpoints/
+      <EndpointName>/
+        <EndpointName>Endpoint.cs
+        Contracts/
+          <Request>.cs
+          <Response>.cs
+    Contracts/                          ← contracts shared across this slice only
+    RouteBuilders/                      ← slice-internal route builder (optional)
+  <Slice2>/
+    ...
+  Contracts/                            ← truly cross-slice shared contracts only
+  Abstractions/                         ← service interfaces owned by the feature
+  Services/                             ← service implementations
+```
+
+### Real Example (GardenAdvisor)
+
+```text
+HomeAssistant.Presentation/GardenAdvisor/
+  RouteBuilders/
+    GardenAdvisorRouteBuilder.cs        ← aggregator; calls all slice Map*Routes()
+    GardenPlanningRouteBuilder.cs
+    PotManagementRouteBuilder.cs
+    RoomInsightsRouteBuilder.cs
+    GardenInsightsRouteBuilder.cs
+    ProtocolToolsRouteBuilder.cs        ← internal AI tool endpoint surface
+  GardenPlanning/
+    Endpoints/
+      PostGardenPlannerChat/
+        PostGardenPlannerChatEndpoint.cs
+        Contracts/
+          GardenPlannerChatRequest.cs
+          GardenPlannerChatResponse.cs
+  PotManagement/
+    Endpoints/
+      PostSavePotConfiguration/
+      PostUpdateSeedStatus/
+    Contracts/
+      PotConfigurationResponse.cs       ← shared within PotManagement slice
+  RoomInsights/
+    Endpoints/
+      GetAvailableRooms/
+      GetRoomSummary/
+  GardenInsights/
+    Endpoints/
+      GetDashboard/
+      GetHarvestReadiness/
+  GardenAdvice/
+    Endpoints/
+      GetLatestGardenAdvice/
+      PostGenerateGardenAdvice/
+  Endpoints/
+    ProtocolTools/
+      GardenPlannerToolEndpoints.cs     ← AI-invokable tool endpoint surface
+      Contracts/
+        SavePotConfigurationRequest.cs
+        PotNumberRequest.cs
+        ...
+  Contracts/                            ← cross-slice shared contracts
+    DashboardAggregationResponse.cs
+    RoomSummaryResponse.cs
+  Abstractions/
+    IGardenPlannerService.cs
+    IGardenPlannerToolService.cs
+  Services/
+    GardenPlannerService.cs
+    GardenPlannerToolService.cs
+```
+
+### Route Builder Convention
+
+- The **aggregator route builder** (e.g. `GardenAdvisorRouteBuilder`) is the only entry point called from `MiddlewareConfiguration.MapRoutes()`.
+- Each **slice route builder** registers one logical domain group and calls `endpoints.MapGroup(...)`.
+- Naming: `Map<DomainSlice>Routes()` extension method on `IEndpointRouteBuilder`.
+- The `ProtocolTools` route builder registers AI-tool endpoints under a stable internal path (e.g. `/api/garden/planner/functions/`). These are not user-facing domain endpoints.
+
+### When to Create a New Slice
+
+Create a new domain slice when:
+- A new endpoint group has a distinct domain owner (e.g. "room queries" vs "pot config writes").
+- An existing route builder file exceeds ~60 lines or maps more than ~5 unrelated endpoint families.
+- Adding a new endpoint would require touching an unrelated existing route group.
+
+Do **not** create a slice for a single endpoint — use a simple `Endpoints/<EndpointName>/` folder directly.
 
 ## Contract Placement Examples
 
 ```text
 HomeAssistant.Presentation/GardenAdvisor/
+  GardenPlanning/
+    Endpoints/
+      PostGardenPlannerChat/
+        Contracts/
+          GardenPlannerChatRequest.cs    ← endpoint-local contract
+          GardenPlannerChatResponse.cs
   Endpoints/
-	PostGardenPlannerChat/
-	  Contracts/
-		GardenPlannerChatRequest.cs
-		GardenPlannerChatResponse.cs
+    ProtocolTools/
+      Contracts/
+        PotNumberRequest.cs              ← ProtocolTools-local contract
   Contracts/
-	DashboardAggregationResponse.cs   # reused by several endpoints
+    DashboardAggregationResponse.cs      ← reused across GardenInsights + ProtocolTools
 
 HomeAssistant.Application/Chat/
   Contracts/
-	Completions/
-	  ChatCompletionRequest.cs
-	Agentic/
-	  AgenticChatResult.cs
-	  ChatFunctionCall.cs
+    Completions/
+      ChatCompletionRequest.cs
+    Agentic/
+      AgenticChatResult.cs
+      ChatFunctionCall.cs
 ```
 
 ## SOLID Guardrails
@@ -133,16 +240,16 @@ GardenPlannerResponsePublisher   # planner response publishing
 
 ```text
 Before
-IGardenPlannerFunctionService
+IGardenPlannerToolService (12 methods spanning commands, queries, and advice)
   - save/update commands
   - room queries
   - dashboard queries
   - advice generation
 
 After
-IGardenPlannerCommandService
-IGardenPlannerQueryService
-IGardenPlannerAdviceService
+IGardenPlannerCommandService   ← save/update pot workflows
+IGardenPlannerQueryService     ← pot/room/dashboard read workflows
+IGardenPlannerAdviceService    ← advice generation and retrieval
 ```
 
 ## Exceptions
