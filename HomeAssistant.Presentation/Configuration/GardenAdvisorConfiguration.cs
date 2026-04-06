@@ -29,6 +29,8 @@ internal static class GardenAdvisorConfiguration
         services.AddScoped<IGardenAdvisorService, HomeAssistant.Application.GardenAdvisor.Services.GardenAdvisorService>();
         services.AddScoped<HomeAssistant.Presentation.GardenAdvisor.Services.IHomeAssistantAreaProvider,
             HomeAssistant.Presentation.GardenAdvisor.Services.HomeAssistantAreaProvider>();
+        services.AddScoped<HomeAssistant.Presentation.GardenAdvisor.Abstractions.IGardenPlannerToolService, 
+            HomeAssistant.Presentation.GardenAdvisor.Services.GardenPlannerToolService>();
         services.AddScoped<HomeAssistant.Presentation.GardenAdvisor.Abstractions.IGardenPlannerService, GardenPlannerService>();
 
         // Background services
