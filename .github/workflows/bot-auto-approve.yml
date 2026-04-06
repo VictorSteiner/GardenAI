@@ -9,17 +9,59 @@ permissions:
 
 jobs:
   auto-approve:
-    name: Auto Approve Labeled PR
+    name: Auto Approve Eligible PR
     runs-on: ubuntu-latest
-    if: >-
-      github.event.pull_request.draft == false &&
-      contains(github.event.pull_request.labels.*.name, 'bot-auto-approve') &&
-      github.actor != 'dependabot[bot]' &&
-      secrets.BOT_GITHUB_TOKEN != ''
 
     steps:
+      - name: Determine auto-approve eligibility
+        id: eligibility
+        shell: bash
+        env:
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPOSITORY: ${{ github.event.pull_request.base.repo.full_name }}
+          HAS_OVERRIDE_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'bot-auto-approve') }}
+          BOT_GITHUB_TOKEN: ${{ secrets.BOT_GITHUB_TOKEN }}
+        run: |
+          eligible=false
+          trusted_author=false
+          reason="Skipped: pull request does not meet auto-approve requirements."
+
+          if [[ "$AUTHOR_ASSOCIATION" == "OWNER" || "$AUTHOR_ASSOCIATION" == "MEMBER" || "$AUTHOR_ASSOCIATION" == "COLLABORATOR" ]]; then
+            trusted_author=true
+          fi
+
+          if [[ "$PR_DRAFT" == "true" ]]; then
+            reason="Skipped: pull request is still a draft."
+          elif [[ -z "$BOT_GITHUB_TOKEN" ]]; then
+            reason="Skipped: BOT_GITHUB_TOKEN is not configured."
+          elif [[ "$PR_AUTHOR" == "dependabot[bot]" ]]; then
+            reason="Skipped: dependabot pull requests require manual approval."
+          elif [[ "$HEAD_REPOSITORY" != "$BASE_REPOSITORY" ]]; then
+            reason="Skipped: fork pull requests are not eligible for auto-approval."
+          elif [[ "$trusted_author" == "true" ]]; then
+            eligible=true
+            reason="Approved: author association '$AUTHOR_ASSOCIATION' is trusted."
+          elif [[ "$HAS_OVERRIDE_LABEL" == "true" ]]; then
+            eligible=true
+            reason="Approved: bot-auto-approve label override is present for untrusted author association '$AUTHOR_ASSOCIATION'."
+          else
+            reason="Skipped: author association '$AUTHOR_ASSOCIATION' is not trusted and no bot-auto-approve override label is present."
+          fi
+
+          echo "eligible=$eligible" >> "$GITHUB_OUTPUT"
+          echo "reason=$reason" >> "$GITHUB_OUTPUT"
+          echo "$reason"
+
       - name: Approve pull request
+        if: steps.eligibility.outputs.eligible == 'true'
         uses: hmarr/auto-approve-action@v4
         with:
           github-token: ${{ secrets.BOT_GITHUB_TOKEN }}
+
+      - name: Log auto-approve skip reason
+        if: steps.eligibility.outputs.eligible != 'true'
+        run: echo "${{ steps.eligibility.outputs.reason }}"
 
