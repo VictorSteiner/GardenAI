@@ -4,7 +4,7 @@ using HomeAssistant.Domain.Common.Handlers;
 using HomeAssistant.Presentation.GardenAdvisor.Contracts;
 using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.GetHarvestReadiness;
+namespace HomeAssistant.Presentation.GardenAdvisor.GardenInsights.Endpoints.GetHarvestReadiness;
 
 /// <summary>Endpoint: GET /api/garden/seeds/harvest-readiness – Get harvest readiness for all seeds.</summary>
 public sealed class GetHarvestReadinessEndpoint
@@ -29,7 +29,7 @@ public sealed class GetHarvestReadinessEndpoint
         logger.LogInformation("Retrieved harvest readiness for {Count} seeds (filter: {Filter})",
             responses.Count, filterByStatus ?? "none");
 
-        return TypedResults.Ok(responses.AsReadOnly() as IReadOnlyList<HarvestReadinessResponse> ?? responses);
+        return TypedResults.Ok<IReadOnlyList<HarvestReadinessResponse>>(responses.AsReadOnly());
     }
 }
 
