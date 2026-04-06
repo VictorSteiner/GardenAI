@@ -15,7 +15,7 @@ public sealed class PlantPot
     public int Position { get; init; }
 
     /// <summary>The plant species currently growing in this pot, if assigned.</summary>
-    public PlantSpecies? Species { get; init; }
+    public PlantSpecies Species { get; init; }
 
     /// <summary>Sensor readings recorded for this pot, ordered oldest to newest.</summary>
     public IReadOnlyList<SensorReading> Readings { get; init; } = [];

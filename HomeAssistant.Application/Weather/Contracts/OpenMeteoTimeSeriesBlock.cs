@@ -12,6 +12,6 @@ public sealed record OpenMeteoTimeSeriesBlock
     public IReadOnlyList<string> Time { get; init; } = [];
 
     [JsonExtensionData]
-    public Dictionary<string, JsonElement>? Values { get; init; }
+    public Dictionary<string, JsonElement> Values { get; init; }
 }
 

@@ -9,7 +9,7 @@ public interface ISensorReadingRepository
     Task AppendAsync(SensorReading reading, CancellationToken ct = default);
 
     /// <summary>Returns the single most recent reading for the specified pot, or <c>null</c>.</summary>
-    Task<SensorReading?> GetLatestByPotAsync(Guid potId, CancellationToken ct = default);
+    Task<SensorReading> GetLatestByPotAsync(Guid potId, CancellationToken ct = default);
 
     /// <summary>Returns all readings for the specified pot, ordered oldest to newest.</summary>
     Task<IReadOnlyList<SensorReading>> GetByPotAsync(Guid potId, CancellationToken ct = default);

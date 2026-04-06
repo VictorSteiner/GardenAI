@@ -9,7 +9,7 @@ public interface IPotConfigurationRepository
     /// <param name="potId">The pot ID to retrieve configuration for.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>The pot configuration, or null if not found.</returns>
-    Task<PotConfiguration?> GetByPotIdAsync(Guid potId, CancellationToken ct = default);
+    Task<PotConfiguration> GetByPotIdAsync(Guid potId, CancellationToken ct = default);
 
     /// <summary>Retrieves all pot configurations.</summary>
     /// <param name="ct">Cancellation token.</param>

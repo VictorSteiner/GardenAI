@@ -9,7 +9,7 @@ public interface IChatSessionRepository
     Task CreateSessionAsync(ChatSession session, CancellationToken ct = default);
 
     /// <summary>Returns the chat session by id, or <c>null</c> when not found.</summary>
-    Task<ChatSession?> GetSessionAsync(Guid sessionId, CancellationToken ct = default);
+    Task<ChatSession> GetSessionAsync(Guid sessionId, CancellationToken ct = default);
 
     /// <summary>Returns recent chat sessions ordered by latest activity.</summary>
     Task<IReadOnlyList<ChatSession>> ListSessionsAsync(int limit = 50, CancellationToken ct = default);
