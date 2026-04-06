@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using HomeAssistant.Application.Dispatching;
 using HomeAssistant.Application.GardenAdvisor.Abstractions;
-using HomeAssistant.Application.GardenAdvisor.Contracts;
+using HomeAssistant.Application.GardenAdvisor.Contracts.Advice;
 using HomeAssistant.Application.PotConfigurations.Abstractions;
 using HomeAssistant.Application.PotConfigurations.Commands;
 using HomeAssistant.Application.PotConfigurations.DTOs;
@@ -12,6 +12,7 @@ using HomeAssistant.Domain.SensorReadings.Abstractions;
 using HomeAssistant.Presentation.GardenAdvisor.Abstractions;
 using HomeAssistant.Presentation.GardenAdvisor.Contracts;
 using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PlannerFunctions.Contracts;
+using AppGardenAdviceResponse = HomeAssistant.Application.GardenAdvisor.Contracts.Advice.GardenAdviceResponse;
 using SavePotConfigurationCommandRequest = HomeAssistant.Application.PotConfigurations.Commands.SavePotConfigurationRequest;
 using SeedAssignmentCommandRequest = HomeAssistant.Application.PotConfigurations.Commands.SeedAssignmentRequest;
 
@@ -226,10 +227,10 @@ public sealed class GardenPlannerFunctionService : IGardenPlannerFunctionService
     }
 
     /// <inheritdoc/>
-    public HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse? GetLatestAdvice() => _adviceStateStore.GetLatest();
+    public AppGardenAdviceResponse? GetLatestAdvice() => _adviceStateStore.GetLatest();
 
     /// <inheritdoc/>
-    public Task<HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse> GenerateAdviceAsync(GeneratePlannerAdviceFunctionRequest request, CancellationToken ct = default)
+    public Task<AppGardenAdviceResponse> GenerateAdviceAsync(GeneratePlannerAdviceFunctionRequest request, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(request);
         return _gardenAdvisorService.GenerateAdviceAsync(request.PublishToMqtt, ct);

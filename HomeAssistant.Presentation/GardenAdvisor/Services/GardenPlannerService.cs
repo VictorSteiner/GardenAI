@@ -2,10 +2,11 @@
 using System.Text;
 using System.Text.Json;
 using HomeAssistant.Application.Chat.Abstractions;
-using HomeAssistant.Application.Chat.Contracts;
+using HomeAssistant.Application.Chat.Contracts.Agentic;
+using HomeAssistant.Application.Chat.Contracts.Completions;
 using HomeAssistant.Application.GardenAdvisor.Abstractions;
 using HomeAssistant.Application.GardenAdvisor.Configuration;
-using HomeAssistant.Application.GardenAdvisor.Contracts;
+using HomeAssistant.Application.GardenAdvisor.Contracts.Advice;
 using HomeAssistant.Application.Messaging.Abstractions;
 using HomeAssistant.Application.PotConfigurations.Abstractions;
 using HomeAssistant.Domain.PotConfigurations.Abstractions;
@@ -13,6 +14,7 @@ using HomeAssistant.Presentation.GardenAdvisor.Abstractions;
 using HomeAssistant.Presentation.GardenAdvisor.Contracts;
 using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PlannerFunctions.Contracts;
 using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostGardenPlannerChat.Contracts;
+using AppGardenAdviceResponse = HomeAssistant.Application.GardenAdvisor.Contracts.Advice.GardenAdviceResponse;
 using Microsoft.Extensions.Options;
 
 namespace HomeAssistant.Presentation.GardenAdvisor.Services;
@@ -292,12 +294,12 @@ public sealed class GardenPlannerService : IGardenPlannerService
             ? "No harvest-readiness items were found."
             : string.Join(" ", items.Select(i => $"{i.PlantName}/{i.SeedName} in pot {i.PotId}: score {i.ReadinessScore}, category {i.ReadinessCategory}."));
 
-    private static string FormatLatestAdvice(HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse? advice)
+    private static string FormatLatestAdvice(AppGardenAdviceResponse? advice)
         => advice is null
             ? "No garden advice has been generated yet."
             : $"Latest advice ({advice.GeneratedAtUtc:O}): {advice.RecommendationSummary}";
 
-    private static string FormatAdvice(HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse advice)
+    private static string FormatAdvice(AppGardenAdviceResponse advice)
         => $"Generated advice ({advice.GeneratedAtUtc:O}): {advice.RecommendationSummary}";
 
     private static string FormatActionDescription(ChatFunctionCall call)

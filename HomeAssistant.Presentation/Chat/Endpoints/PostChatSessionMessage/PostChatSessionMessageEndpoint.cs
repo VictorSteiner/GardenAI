@@ -1,8 +1,11 @@
 ﻿using HomeAssistant.Application.Chat.Abstractions;
-using HomeAssistant.Application.Chat.Contracts;
+using HomeAssistant.Application.Chat.Contracts.Agentic;
+using HomeAssistant.Application.Chat.Contracts.Completions;
 using HomeAssistant.Domain.Assistant.Abstractions;
 using HomeAssistant.Domain.Assistant.Entities;
 using HomeAssistant.Presentation.Chat.Services;
+using AppChatCompletionRequest = HomeAssistant.Application.Chat.Contracts.Completions.ChatCompletionRequest;
+using AppChatHistoryMessage = HomeAssistant.Application.Chat.Contracts.Agentic.ChatHistoryMessage;
 
 namespace HomeAssistant.Presentation.Chat.Endpoints.PostChatSessionMessage;
 
@@ -46,12 +49,12 @@ internal static class PostChatSessionMessageEndpoint
                     var maxHistory = int.TryParse(configuration["Assistant:MaxHistoryMessages"], out var parsedMax) ? parsedMax : 30;
                     var historyMessages = await sessions.GetMessagesAsync(sessionId, maxHistory, ct);
 
-                    var completion = new HomeAssistant.Application.Chat.Contracts.ChatCompletionRequest(
+                    var completion = new AppChatCompletionRequest(
                         ChatSystemPromptBuilder.Build(configuration, session.Capability),
                         request.Prompt.Trim(),
                         historyMessages
                             .Where(m => m.Role is "user" or "assistant")
-                            .Select(m => new HomeAssistant.Application.Chat.Contracts.ChatHistoryMessage(m.Role, m.Content))
+                            .Select(m => new AppChatHistoryMessage(m.Role, m.Content))
                             .ToList(),
                         session.Capability);
 

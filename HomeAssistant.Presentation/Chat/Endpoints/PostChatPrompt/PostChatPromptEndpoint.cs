@@ -1,6 +1,7 @@
 ﻿using HomeAssistant.Application.Chat.Abstractions;
-using HomeAssistant.Application.Chat.Contracts;
+using HomeAssistant.Application.Chat.Contracts.Completions;
 using HomeAssistant.Presentation.Chat.Services;
+using AppChatCompletionRequest = HomeAssistant.Application.Chat.Contracts.Completions.ChatCompletionRequest;
 
 namespace HomeAssistant.Presentation.Chat.Endpoints.PostChatPrompt;
 
@@ -25,7 +26,7 @@ internal static class PostChatPromptEndpoint
 
                     try
                     {
-                        var completion = new HomeAssistant.Application.Chat.Contracts.ChatCompletionRequest(
+                        var completion = new AppChatCompletionRequest(
                             ChatSystemPromptBuilder.Build(configuration, "helper"),
                             request.Prompt,
                             [],

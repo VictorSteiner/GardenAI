@@ -1,4 +1,4 @@
-﻿namespace HomeAssistant.Application.Chat.Contracts;
+﻿namespace HomeAssistant.Application.Chat.Contracts.Agentic;
 
 /// <summary>Describes a single function the AI may call.</summary>
 public sealed record ChatToolDefinition(

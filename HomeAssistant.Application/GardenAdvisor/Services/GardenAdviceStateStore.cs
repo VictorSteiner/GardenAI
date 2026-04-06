@@ -1,5 +1,5 @@
 ﻿using HomeAssistant.Application.GardenAdvisor.Abstractions;
-using HomeAssistant.Application.GardenAdvisor.Contracts;
+using HomeAssistant.Application.GardenAdvisor.Contracts.Advice;
 
 namespace HomeAssistant.Application.GardenAdvisor.Services;
 

@@ -1,4 +1,6 @@
-﻿namespace HomeAssistant.Application.Chat.Contracts;
+﻿using HomeAssistant.Application.Chat.Contracts.Agentic;
+
+namespace HomeAssistant.Application.Chat.Contracts.Completions;
 
 /// <summary>Request for a context-aware LLM completion call.</summary>
 public sealed record ChatCompletionRequest(

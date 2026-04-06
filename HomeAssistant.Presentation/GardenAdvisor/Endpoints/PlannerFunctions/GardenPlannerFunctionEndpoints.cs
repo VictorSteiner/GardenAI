@@ -1,6 +1,8 @@
 ﻿using HomeAssistant.Presentation.GardenAdvisor.Abstractions;
+using HomeAssistant.Application.GardenAdvisor.Contracts.Advice;
 using HomeAssistant.Presentation.GardenAdvisor.Contracts;
 using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PlannerFunctions.Contracts;
+using AppGardenAdviceResponse = HomeAssistant.Application.GardenAdvisor.Contracts.Advice.GardenAdviceResponse;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.PlannerFunctions;
@@ -73,14 +75,14 @@ public static class GardenPlannerFunctionEndpoints
         group.MapGet("/advice/latest", GetLatestAdvice)
             .WithName("PlannerFunctionGetLatestAdvice")
             .WithOpenApi()
-            .Produces<HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse>(StatusCodes.Status200OK)
+            .Produces<AppGardenAdviceResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/advice/generate", GenerateAdvice)
             .WithName("PlannerFunctionGenerateAdvice")
             .WithOpenApi()
             .Accepts<GeneratePlannerAdviceFunctionRequest>("application/json")
-            .Produces<HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse>(StatusCodes.Status200OK);
+            .Produces<AppGardenAdviceResponse>(StatusCodes.Status200OK);
 
         group.MapPost("/history/clear", ClearHistory)
             .WithName("PlannerFunctionClearHistory")
@@ -192,7 +194,7 @@ public static class GardenPlannerFunctionEndpoints
         return TypedResults.Ok(await service.GetHarvestReadinessAsync(new HarvestReadinessFunctionRequest(filterByStatus), ct));
     }
 
-    private static Results<Ok<HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse>, NotFound> GetLatestAdvice(IGardenPlannerFunctionService service)
+    private static Results<Ok<AppGardenAdviceResponse>, NotFound> GetLatestAdvice(IGardenPlannerFunctionService service)
     {
         ArgumentNullException.ThrowIfNull(service);
 
@@ -200,7 +202,7 @@ public static class GardenPlannerFunctionEndpoints
         return latest is null ? TypedResults.NotFound() : TypedResults.Ok(latest);
     }
 
-    private static async Task<Ok<HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse>> GenerateAdvice(
+    private static async Task<Ok<AppGardenAdviceResponse>> GenerateAdvice(
         GeneratePlannerAdviceFunctionRequest? request,
         IGardenPlannerFunctionService service,
         CancellationToken ct)

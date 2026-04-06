@@ -1,4 +1,4 @@
-﻿namespace HomeAssistant.Application.GardenAdvisor.Contracts;
+﻿namespace HomeAssistant.Application.GardenAdvisor.Contracts.PlantProfiles;
 
 /// <summary>Plant assignment and ideal condition band for a single pot.</summary>
 public sealed record PlantProfile(

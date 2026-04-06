@@ -1,10 +1,11 @@
 ﻿using System.Text;
 using System.Text.Json;
 using HomeAssistant.Application.Chat.Abstractions;
-using HomeAssistant.Application.Chat.Contracts;
+using HomeAssistant.Application.Chat.Contracts.Completions;
 using HomeAssistant.Application.GardenAdvisor.Abstractions;
 using HomeAssistant.Application.GardenAdvisor.Configuration;
-using HomeAssistant.Application.GardenAdvisor.Contracts;
+using HomeAssistant.Application.GardenAdvisor.Contracts.Advice;
+using HomeAssistant.Application.GardenAdvisor.Contracts.PlantProfiles;
 using HomeAssistant.Application.Messaging.Abstractions;
 using HomeAssistant.Application.Weather.Abstractions;
 using HomeAssistant.Application.Weather.Contracts;

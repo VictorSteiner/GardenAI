@@ -1,4 +1,5 @@
-﻿using HomeAssistant.Application.Chat.Contracts;
+﻿using HomeAssistant.Application.Chat.Contracts.Agentic;
+using HomeAssistant.Application.Chat.Contracts.Completions;
 
 namespace HomeAssistant.Application.Chat.Abstractions;
 

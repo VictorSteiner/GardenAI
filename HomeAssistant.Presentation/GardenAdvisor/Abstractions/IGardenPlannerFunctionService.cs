@@ -1,5 +1,7 @@
 ﻿using HomeAssistant.Presentation.GardenAdvisor.Contracts;
 using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PlannerFunctions.Contracts;
+using HomeAssistant.Application.GardenAdvisor.Contracts.Advice;
+using AppGardenAdviceResponse = HomeAssistant.Application.GardenAdvisor.Contracts.Advice.GardenAdviceResponse;
 
 namespace HomeAssistant.Presentation.GardenAdvisor.Abstractions;
 
@@ -37,10 +39,10 @@ public interface IGardenPlannerFunctionService
     Task<IReadOnlyList<HarvestReadinessResponse>> GetHarvestReadinessAsync(HarvestReadinessFunctionRequest request, CancellationToken ct = default);
 
     /// <summary>Returns the latest in-memory garden advice, if available.</summary>
-    HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse? GetLatestAdvice();
+    AppGardenAdviceResponse? GetLatestAdvice();
 
     /// <summary>Generates fresh garden advice and optionally publishes MQTT updates.</summary>
-    Task<HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse> GenerateAdviceAsync(GeneratePlannerAdviceFunctionRequest request, CancellationToken ct = default);
+    Task<AppGardenAdviceResponse> GenerateAdviceAsync(GeneratePlannerAdviceFunctionRequest request, CancellationToken ct = default);
 
     /// <summary>Clears the in-memory planner chat history.</summary>
     string ClearPlannerHistory();
