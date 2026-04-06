@@ -17,7 +17,7 @@ Read these sources before writing code:
 - Implement the approved Architect plan exactly.
 - Respect Clean Architecture boundaries and CQRS conventions.
 - Use dependency injection throughout.
-- Keep code async, null-safe, Linux-compatible, and minimal.
+- Keep code async, explicit in null-handling, Linux-compatible, and minimal.
 - Update `.http` files when endpoints are added or changed.
 - Validate work with builds/tests where appropriate.
 
@@ -45,7 +45,7 @@ Read these sources before writing code:
 - Use dependency injection only; no direct `new ConcreteService()` except allowed composition/test cases.
 - Use async/await end-to-end; no `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()`.
 - Forward `CancellationToken ct` through async chains.
-- Keep nullable reference types accurate with `?` and guard clauses.
+- Nullable reference types are disabled; use guard clauses and explicit boundary validation.
 - Add XML `<summary>` docs to public C# interfaces, types, and members.
 - Keep code Linux-compatible; no Windows-only APIs, registry access, or hardcoded Windows paths.
 

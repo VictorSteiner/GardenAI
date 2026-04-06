@@ -39,7 +39,7 @@ Welcome! This project uses a **four-agent workflow** for all feature development
 **When to invoke:** After the Engineer completes implementation.
 
 **Role:** Audit the implementation against 13-point checklist.
-- Verifies architecture layers, CQRS discipline, typed results, DI, async/await, nullable refs, Linux compatibility, logging, metrics, configuration, documentation, API contracts, and TypeScript quality
+- Verifies architecture layers, CQRS discipline, typed results, DI, async/await, null-handling, Linux compatibility, logging, metrics, configuration, documentation, API contracts, and TypeScript quality
 - Classifies findings as:
   - 🔴 **Structural Issue** → back to Architect (requires redesign)
   - 🟡 **Minor Issue** → Engineer applies inline fix (no redesign needed)
@@ -261,7 +261,7 @@ Topic-specific instruction files in `.github/instructions/` use the `*.instructi
 ### **Reviewer Agent** (Review Phase)
 **Can:**
 - ✅ Read all created/modified files from the Engineer
-- ✅ Audit against the 13-point checklist (architecture, CQRS, typed results, DI, async/await, nullable refs, Linux compatibility, logging, metrics, config, documentation, API contracts, TypeScript)
+- ✅ Audit against the 13-point checklist (architecture, CQRS, typed results, DI, async/await, null-handling, Linux compatibility, logging, metrics, config, documentation, API contracts, TypeScript)
 - ✅ Classify findings as 🔴 Structural (requires Architect re-plan) or 🟡 Minor (inline fix)
 - ✅ Provide corrected code snippets for minor issues
 
@@ -332,7 +332,7 @@ dotnet ef database update `
 6. **Typed Results** – All endpoints return `Results.Ok<T>()`, `Results.NotFound()`, etc. with `.Produces<T>()` annotations
 7. **Dependency Injection** – No `new ConcreteService()` except in tests/factories; all registered in `Program.cs`
 8. **Async/Await** – No `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()`; all methods accept `CancellationToken ct`
-9. **Nullable Reference Types** – Enabled; all `?` annotations present; guard clauses at every entry point
+9. **Null Handling** – Nullable reference types are disabled; use guard clauses and explicit validation at every entry point
 10. **Linux-Compatible** – No Windows APIs; target: Raspberry Pi 5 arm64
 
 ---
