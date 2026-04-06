@@ -1,16 +1,35 @@
 ﻿name: Auto-Merge PR
 description: Automatically merges a pull request using rebase strategy when all relevant checks pass
 
+inputs:
+  pr_number:
+    description: 'PR number to merge'
+    required: false
+    default: ${{ github.event.pull_request.number }}
+
 runs:
   using: composite
   steps:
+    - name: Determine PR Number
+      id: pr
+      shell: bash
+      run: |
+        PR_NUMBER="${{ inputs.pr_number }}"
+        if [ -z "$PR_NUMBER" ]; then
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+        fi
+        if [ -z "$PR_NUMBER" ]; then
+          PR_NUMBER="${{ github.event.check_run.pull_requests[0].number }}"
+        fi
+        echo "number=$PR_NUMBER" >> $GITHUB_OUTPUT
+
     - name: Detect Changed Areas
       id: changes
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        PR_NUMBER=${{ github.event.pull_request.number }}
+        PR_NUMBER=${{ steps.pr.outputs.number }}
         REPO=${{ github.repository }}
         
         # Get list of changed files
@@ -34,73 +53,46 @@ runs:
           echo "✅ Frontend changes detected"
         fi
         
+        # If no changes detected in either, allow merge
+        if [ "$BACKEND_CHANGED" = false ] && [ "$FRONTEND_CHANGED" = false ]; then
+          echo "ℹ️ No backend or frontend changes detected"
+        fi
+        
         echo "backend_changed=$BACKEND_CHANGED" >> $GITHUB_OUTPUT
         echo "frontend_changed=$FRONTEND_CHANGED" >> $GITHUB_OUTPUT
 
-    - name: Wait for Backend Build
-      if: steps.changes.outputs.backend_changed == 'true'
+    - name: Verify All Checks Pass
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        PR_NUMBER=${{ github.event.pull_request.number }}
+        PR_NUMBER=${{ steps.pr.outputs.number }}
         REPO=${{ github.repository }}
         
-        # Wait up to 15 minutes for backend build
-        TIMEOUT=900
-        ELAPSED=0
-        INTERVAL=10
+        echo "Verifying all checks pass for PR #$PR_NUMBER..."
         
-        echo "⏳ Waiting for Backend Build (.NET) to pass..."
-        while [ $ELAPSED -lt $TIMEOUT ]; do
-          # Check if backend build is in the list of completed checks
-          if gh pr checks $PR_NUMBER --repo $REPO 2>/dev/null | grep -q "Backend Build.*✓"; then
-            echo "✅ Backend Build (.NET) passed!"
-            exit 0
-          fi
-          
-          echo "⏳ Waiting for Backend Build... ($ELAPSED/$TIMEOUT seconds)"
-          sleep $INTERVAL
-          ELAPSED=$((ELAPSED + INTERVAL))
-        done
+        # Get all checks for the PR
+        CHECK_OUTPUT=$(gh pr checks $PR_NUMBER --repo $REPO 2>/dev/null)
         
-        echo "⚠️ Backend Build did not complete in time"
-        exit 1
-
-    - name: Wait for Frontend Build
-      if: steps.changes.outputs.frontend_changed == 'true'
-      shell: bash
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        PR_NUMBER=${{ github.event.pull_request.number }}
-        REPO=${{ github.repository }}
+        # Count passing and failing checks
+        PASSING=$(echo "$CHECK_OUTPUT" | grep -c "✓" || true)
+        FAILING=$(echo "$CHECK_OUTPUT" | grep -c "✗" || true)
+        PENDING=$(echo "$CHECK_OUTPUT" | grep -c "●" || true)
         
-        # Wait up to 15 minutes for frontend build
-        TIMEOUT=900
-        ELAPSED=0
-        INTERVAL=10
+        echo "Status: $PASSING passing, $FAILING failing, $PENDING pending"
+        echo "$CHECK_OUTPUT"
         
-        echo "⏳ Waiting for Frontend Build (Node) to pass..."
-        while [ $ELAPSED -lt $TIMEOUT ]; do
-          # Check if frontend build is in the list of completed checks
-          if gh pr checks $PR_NUMBER --repo $REPO 2>/dev/null | grep -q "Frontend Build.*✓"; then
-            echo "✅ Frontend Build (Node) passed!"
-            exit 0
-          fi
-          
-          echo "⏳ Waiting for Frontend Build... ($ELAPSED/$TIMEOUT seconds)"
-          sleep $INTERVAL
-          ELAPSED=$((ELAPSED + INTERVAL))
-        done
+        if [ "$FAILING" -gt 0 ] || [ "$PENDING" -gt 0 ]; then
+          echo "❌ Not all checks have passed"
+          exit 1
+        fi
         
-        echo "⚠️ Frontend Build did not complete in time"
-        exit 1
+        echo "✅ All checks passed!"
 
     - name: Merge PR (Rebase)
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        gh pr merge ${{ github.event.pull_request.number }} --rebase --auto --delete-branch
+        gh pr merge ${{ steps.pr.outputs.number }} --rebase --auto --delete-branch
 
