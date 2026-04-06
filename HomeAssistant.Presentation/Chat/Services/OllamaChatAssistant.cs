@@ -199,15 +199,15 @@ public sealed class OllamaChatAssistant : HomeAssistant.Application.Chat.Abstrac
     private sealed record OllamaChatRequest(
         string Model,
         IReadOnlyList<OllamaMessage> Messages,
-        [property: JsonPropertyName("tools")] IReadOnlyList<OllamaTool>? Tools,
+        [property: JsonPropertyName("tools")] IReadOnlyList<OllamaTool> Tools,
         bool Stream = false);
 
     private sealed record OllamaMessage(
         string Role,
-        string? Content,
-        [property: JsonPropertyName("tool_calls")] IReadOnlyList<OllamaToolCallMessage>? ToolCalls = null);
+        string Content,
+        [property: JsonPropertyName("tool_calls")] IReadOnlyList<OllamaToolCallMessage> ToolCalls = null);
 
-    private sealed record OllamaChatResponse(OllamaMessage? Message, bool Done);
+    private sealed record OllamaChatResponse(OllamaMessage Message, bool Done);
 
     private sealed record OllamaTool(string Type, OllamaToolFunction Function);
 
@@ -221,10 +221,10 @@ public sealed class OllamaChatAssistant : HomeAssistant.Application.Chat.Abstrac
         IDictionary<string, object> Properties,
         IReadOnlyList<string> Required);
 
-    private sealed record OllamaToolCallMessage(OllamaToolCallFunction? Function);
+    private sealed record OllamaToolCallMessage(OllamaToolCallFunction Function);
 
     private sealed record OllamaToolCallFunction(
-        string? Name,
+        string Name,
         [property: JsonPropertyName("arguments")] JsonElement? Arguments);
 }
 
