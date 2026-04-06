@@ -2,6 +2,7 @@
 using HomeAssistant.Application.Dispatching;
 using HomeAssistant.Application.GardenAdvisor.Abstractions;
 using HomeAssistant.Application.GardenAdvisor.Contracts;
+using HomeAssistant.Application.PotConfigurations.Abstractions;
 using HomeAssistant.Application.PotConfigurations.Commands;
 using HomeAssistant.Application.PotConfigurations.DTOs;
 using HomeAssistant.Application.PotConfigurations.Queries;
@@ -18,17 +19,7 @@ namespace HomeAssistant.Presentation.GardenAdvisor.Services;
 /// </summary>
 public sealed class GardenPlannerFunctionService : IGardenPlannerFunctionService
 {
-    private static readonly IReadOnlyDictionary<int, Guid> PotNumberToId =
-        new Dictionary<int, Guid>
-        {
-            [1] = Guid.Parse("11111111-1111-1111-1111-111111111111"),
-            [2] = Guid.Parse("22222222-2222-2222-2222-222222222222"),
-            [3] = Guid.Parse("33333333-3333-3333-3333-333333333333"),
-            [4] = Guid.Parse("44444444-4444-4444-4444-444444444444"),
-            [5] = Guid.Parse("55555555-5555-5555-5555-555555555555"),
-            [6] = Guid.Parse("66666666-6666-6666-6666-666666666666"),
-        };
-
+    private readonly IPotIdentityMapProvider _potIdentityMapProvider;
     private readonly IPotConfigurationRepository _potRepository;
     private readonly ISensorReadingRepository _sensorRepository;
     private readonly ICommandDispatcher _commandDispatcher;
@@ -43,6 +34,7 @@ public sealed class GardenPlannerFunctionService : IGardenPlannerFunctionService
 
     /// <summary>Creates a new <see cref="GardenPlannerFunctionService"/>.</summary>
     public GardenPlannerFunctionService(
+        IPotIdentityMapProvider potIdentityMapProvider,
         IPotConfigurationRepository potRepository,
         ISensorReadingRepository sensorRepository,
         ICommandDispatcher commandDispatcher,
@@ -55,6 +47,7 @@ public sealed class GardenPlannerFunctionService : IGardenPlannerFunctionService
         IGardenPlannerHistoryStore historyStore,
         ILogger<GardenPlannerFunctionService> logger)
     {
+        _potIdentityMapProvider = potIdentityMapProvider ?? throw new ArgumentNullException(nameof(potIdentityMapProvider));
         _potRepository = potRepository ?? throw new ArgumentNullException(nameof(potRepository));
         _sensorRepository = sensorRepository ?? throw new ArgumentNullException(nameof(sensorRepository));
         _commandDispatcher = commandDispatcher ?? throw new ArgumentNullException(nameof(commandDispatcher));
@@ -73,8 +66,9 @@ public sealed class GardenPlannerFunctionService : IGardenPlannerFunctionService
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        if (!TryResolvePotId(request.PotNumber, out var potId))
-            return "Invalid pot number. Must be 1–6.";
+        var potId = await _potIdentityMapProvider.ResolvePotIdAsync(request.PotNumber, ct);
+        if (!potId.HasValue)
+            return "Invalid pot number. Use a configured pot number from PotIdentityMap.";
 
         if (string.IsNullOrWhiteSpace(request.PlantName) || string.IsNullOrWhiteSpace(request.SeedName))
             return "Plant name and seed name are required.";
@@ -88,7 +82,7 @@ public sealed class GardenPlannerFunctionService : IGardenPlannerFunctionService
 
         await _commandDispatcher.DispatchAsync(
             new SavePotConfigurationCommand(
-                potId,
+                potId.Value,
                 new SavePotConfigurationRequest(
                     request.RoomAreaId,
                     roomName,
@@ -115,10 +109,11 @@ public sealed class GardenPlannerFunctionService : IGardenPlannerFunctionService
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        if (!TryResolvePotId(request.PotNumber, out var potId))
-            return "Invalid pot number. Must be 1–6.";
+        var potId = await _potIdentityMapProvider.ResolvePotIdAsync(request.PotNumber, ct);
+        if (!potId.HasValue)
+            return "Invalid pot number. Use a configured pot number from PotIdentityMap.";
 
-        var config = await _potRepository.GetByPotIdAsync(potId, ct);
+        var config = await _potRepository.GetByPotIdAsync(potId.Value, ct);
         if (config is null)
             return $"Pot {request.PotNumber} has no configuration.";
 
@@ -127,7 +122,7 @@ public sealed class GardenPlannerFunctionService : IGardenPlannerFunctionService
             return $"Pot {request.PotNumber} has no seeds to update.";
 
         await _commandDispatcher.DispatchAsync(
-            new UpdateSeedStatusCommand(potId, seed.Id, request.NewStatus),
+            new UpdateSeedStatusCommand(potId.Value, seed.Id, request.NewStatus),
             ct);
 
         _logger.LogInformation(
@@ -143,11 +138,12 @@ public sealed class GardenPlannerFunctionService : IGardenPlannerFunctionService
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        if (!TryResolvePotId(request.PotNumber, out var potId))
-            return "Invalid pot number. Must be 1–6.";
+        var potId = await _potIdentityMapProvider.ResolvePotIdAsync(request.PotNumber, ct);
+        if (!potId.HasValue)
+            return "Invalid pot number. Use a configured pot number from PotIdentityMap.";
 
-        var config = await _potRepository.GetByPotIdAsync(potId, ct);
-        var reading = await _sensorRepository.GetLatestByPotAsync(potId, ct);
+        var config = await _potRepository.GetByPotIdAsync(potId.Value, ct);
+        var reading = await _sensorRepository.GetLatestByPotAsync(potId.Value, ct);
 
         if (config is null)
             return $"Pot {request.PotNumber}: no configuration yet. {FormatReading(reading)}.";
@@ -164,9 +160,10 @@ public sealed class GardenPlannerFunctionService : IGardenPlannerFunctionService
     {
         var configs = await _potRepository.GetAllAsync(ct);
         var configByPot = configs.ToDictionary(c => c.PotId);
+        var map = await _potIdentityMapProvider.GetMapAsync(ct);
         var sb = new StringBuilder();
 
-        foreach (var (potNumber, potId) in PotNumberToId.OrderBy(kv => kv.Key))
+        foreach (var (potNumber, potId) in map.OrderBy(kv => kv.Key))
         {
             configByPot.TryGetValue(potId, out var config);
             var reading = await _sensorRepository.GetLatestByPotAsync(potId, ct);
@@ -185,10 +182,11 @@ public sealed class GardenPlannerFunctionService : IGardenPlannerFunctionService
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        if (!TryResolvePotId(request.PotNumber, out var potId))
-            return "Invalid pot number. Must be 1–6.";
+        var potId = await _potIdentityMapProvider.ResolvePotIdAsync(request.PotNumber, ct);
+        if (!potId.HasValue)
+            return "Invalid pot number. Use a configured pot number from PotIdentityMap.";
 
-        var reading = await _sensorRepository.GetLatestByPotAsync(potId, ct);
+        var reading = await _sensorRepository.GetLatestByPotAsync(potId.Value, ct);
         return reading is null
             ? $"Pot {request.PotNumber}: no sensor data yet."
             : $"Pot {request.PotNumber}: moisture {reading.SoilMoisture:0.0}%, temperature {reading.TemperatureC:0.0}°C ({reading.Timestamp:HH:mm} UTC).";
@@ -242,8 +240,6 @@ public sealed class GardenPlannerFunctionService : IGardenPlannerFunctionService
         return "✅ Planner history cleared.";
     }
 
-    private static bool TryResolvePotId(int potNumber, out Guid potId)
-        => PotNumberToId.TryGetValue(potNumber, out potId);
 
     private static string FormatReading(Domain.SensorReadings.Entities.SensorReading? reading)
         => reading is null

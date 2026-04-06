@@ -1,8 +1,10 @@
 ﻿using FluentValidation;
 using HomeAssistant.Application.Maintenance.Commands.ResetPersistedData;
 using HomeAssistant.Application.PotConfigurations.Commands;
+using HomeAssistant.Application.PotConfigurations.Configuration;
 using HomeAssistant.Application.PotConfigurations.DTOs;
 using HomeAssistant.Application.PotConfigurations.Queries;
+using HomeAssistant.Application.PotConfigurations.Abstractions;
 using HomeAssistant.Application.PotConfigurations.Services;
 using HomeAssistant.Application.PotConfigurations.Validators;
 using HomeAssistant.Application.Dispatching;
@@ -17,9 +19,10 @@ namespace HomeAssistant.Presentation.Configuration;
 internal static class CqrsConfiguration
 {
     /// <summary>Registers CQRS dispatcher, command handlers, query handlers, validators, and mappers.</summary>
-    internal static IServiceCollection AddCqrsServices(this IServiceCollection services)
+    internal static IServiceCollection AddCqrsServices(this IServiceCollection services, IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
 
         // CQRS Dispatcher (singleton to maintain shared queue across requests)
         // Dispatcher runs registered IValidator<TCommand> automatically before handler execution
@@ -37,6 +40,8 @@ internal static class CqrsConfiguration
 
         // Application Services
         services.AddScoped<IHarvestReadinessCalculator, HarvestReadinessCalculator>();
+        services.Configure<PotIdentityMapOptions>(configuration.GetSection("PotIdentityMap"));
+        services.AddSingleton<IPotIdentityMapProvider, PotIdentityMapProvider>();
 
         // FluentValidation: scan Application assembly for all IValidator<T> implementations
         services.AddValidatorsFromAssemblyContaining<SavePotConfigurationCommandValidator>(
