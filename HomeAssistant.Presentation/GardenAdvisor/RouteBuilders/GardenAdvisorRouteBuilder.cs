@@ -1,9 +1,6 @@
-﻿using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostGardenPlannerChat;
-using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostGardenPlannerChat.Contracts;
+﻿namespace HomeAssistant.Presentation.GardenAdvisor.RouteBuilders;
 
-namespace HomeAssistant.Presentation.GardenAdvisor.RouteBuilders;
-
-/// <summary>Maps all garden advisor endpoints.</summary>
+/// <summary>Maps all garden advisor routes through domain-sliced route builders.</summary>
 public static class GardenAdvisorRouteBuilder
 {
     /// <summary>Maps garden advisor routes under <c>/api/garden</c>.</summary>
@@ -11,17 +8,11 @@ public static class GardenAdvisorRouteBuilder
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        var plannerGroup = endpoints.MapGroup("/api/garden/planner")
-            .WithTags("GardenPlanner");
-
-        plannerGroup
-            .MapPost("/chat", PostGardenPlannerChatEndpoint.Handle)
-            .WithName("GardenPlannerChat")
-            .WithOpenApi()
-            .Accepts<GardenPlannerChatRequest>("application/json")
-            .Produces<GardenPlannerChatResponse>(StatusCodes.Status200OK)
-            .Produces<string>(StatusCodes.Status400BadRequest);
-
+        endpoints.MapGardenPlanningRoutes();
+        endpoints.MapPotManagementRoutes();
+        endpoints.MapRoomInsightsRoutes();
+        endpoints.MapGardenInsightsRoutes();
+        endpoints.MapGardenAdviceRoutes();
 
         return endpoints;
     }
