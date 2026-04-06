@@ -2,63 +2,79 @@
 
 ## Project Vision
 
-A **custom, agent-based garden automation platform** running on a Raspberry Pi 5.
-A "Council of Agents" (Gardener, Weather Expert, Planner) — orchestrated via **Semantic Kernel** — monitors 6 DIY plant pots using Zigbee soil-moisture and temperature sensors (delivered through Zigbee2MQTT) and makes autonomous watering/care decisions.
+A **lightweight, modular platform** running on a Raspberry Pi 5 powered by local LLMs (via Semantic Kernel + Ollama).
+The system demonstrates clean architecture principles, CQRS dispatch patterns, and extensible integration adapters.
 
-This is **not** a Home Assistant integration. It is a standalone system.
+This is a **reference implementation** of scalable ASP.NET Core design on embedded hardware.
 
 ---
 
 ## Solution Architecture (Clean Architecture)
 
-| Layer | Project | Status | Responsibility |
-|---|---|---|---|
-| API / Host | `HomeAssistant.Presentation` | ✅ exists | Minimal API endpoints, SignalR hubs, composition root |
-| Use Cases | `HomeAssistant.Application` | 🔜 planned | Agent orchestration (Semantic Kernel), CQRS dispatching, service interfaces |
-| Domain | `HomeAssistant.Domain` | 🔜 planned | `PlantPot`, `PlantSpecies`, `SensorReading`, repository & sensor interfaces, CQRS marker interfaces |
-| DB / IO | `HomeAssistant.Infrastructure.Persistence` + `HomeAssistant.Infrastructure.Sensors` | ✅ exists | EF Core persistence adapters and sensor provider adapters |
+The project follows **Clean Architecture** with strict layer separation:
 
-New projects → added to `HomeAssistant.sln`, named `HomeAssistant.<Layer>`.
+| Layer | Projects | Responsibility |
+|---|---|---|
+| Presentation | `HomeAssistant.Presentation` | HTTP API surface, request/response contracts, composition root |
+| Application | `HomeAssistant.Application` | Use case orchestration, CQRS dispatch, service configuration |
+| Domain | `HomeAssistant.Domain` | Business entities, repository interfaces, CQRS marker abstractions |
+| Infrastructure | `HomeAssistant.Infrastructure.*` | Persistence, external integrations, concrete implementations |
 
-### Adding a layer project
-```powershell
-dotnet new classlib -n HomeAssistant.Domain -f net10.0
-dotnet sln add HomeAssistant.Domain/HomeAssistant.Domain.csproj
-# Then add a <ProjectReference> in the consuming .csproj
-```
+### Layer Rules (Strict)
 
----
-
-## Domain Model
-
-Core entities live in `HomeAssistant.Domain`:
-
-```
-PlantSpecies          – name, ideal moisture range, ideal temp range
-PlantPot              – id, label, position, PlantSpecies, list of SensorReadings
-SensorReading         – potId, timestamp, soilMoisture (%), temperatureC
-```
-
-Council of Agents (orchestrated in `HomeAssistant.Application`):
-- **Gardener** – interprets sensor data, decides watering actions
-- **Weather Expert** – fetches/forecasts weather to adjust schedules
-- **Planner** – coordinates schedules across all configured pots
+1. **Presentation** may reference Application and Domain (never Infrastructure directly)
+2. **Application** may reference Domain only
+3. **Domain** has zero external dependencies (pure business logic)
+4. **Infrastructure** implements Domain/Application interfaces only (no upward references)
 
 ---
 
-## Key Abstractions (never skip these)
+## Domain-Driven Design Approach
 
+### Feature-Based Organization
+
+Organize code by **domain concern**, not by technical type:
+
+**✅ Good:**
+```
+Feature/
+  Entities/          ← core business objects
+  Abstractions/      ← repository/service contracts
+  Commands/          ← domain write operations
+  Queries/           ← domain read operations
+```
+
+**❌ Avoid:**
+```
+Entities/
+Repositories/
+Services/
+Commands/
+Queries/
+```
+
+### No Implementation Details in Documentation
+
+Documentation describes **principles and contracts**, never "put this file in that folder." Implementations may vary based on project needs.
+
+---
+
+## CQRS Pattern (via Channels)
+
+### Command Dispatch
+- Commands are **write operations** that change state
+- All commands flow through a bounded channel with semaphore-controlled concurrency (max 4 concurrent operations on Pi 5)
+- Command handlers execute sequentially within the channel
+- Returns completion status (success/failure), not domain data
+
+### Query Dispatch
+- Queries are **read operations** that fetch data without side effects
+- Query handlers are called **directly** (no channel needed)
+- May be called in parallel by multiple request threads
+- Returns typed result data
+
+### CQRS Marker Interfaces
 ```csharp
-// HomeAssistant.Domain
-public interface ISensorProvider
-{
-    Task<IReadOnlyList<SensorReading>> GetLatestReadingsAsync(CancellationToken ct = default);
-}
-
-public interface IPlantPotRepository { /* CRUD + latest readings */ }
-public interface ISensorReadingRepository { /* append + query */ }
-
-// CQRS marker interfaces (HomeAssistant.Domain/Common/)
 public interface ICommand { }
 public interface IQuery<TResult> { }
 public interface ICommandHandler<TCommand> where TCommand : ICommand
@@ -71,243 +87,147 @@ public interface IQueryHandler<TQuery, TResult> where TQuery : IQuery<TResult>
 }
 ```
 
-**`ISensorProvider` is the primary seam** between mock (dev/test) and Zigbee2MQTT (production).
-Always inject it; never instantiate a concrete sensor class directly.
+---
+
+## Repository Pattern
+
+All data access is behind **repository interfaces**:
+
+```csharp
+// Define in Domain
+public interface IMyRepository
+{
+    Task<MyEntity?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<IReadOnlyList<MyEntity>> GetAllAsync(CancellationToken ct = default);
+    Task<MyEntity> CreateAsync(MyEntity entity, CancellationToken ct = default);
+    Task UpdateAsync(MyEntity entity, CancellationToken ct = default);
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
+}
+
+// Implement in Infrastructure
+public sealed class MyRepository : IMyRepository { ... }
+```
+
+**Key Principle:** Repository interfaces live in Domain, implementations live in Infrastructure.
 
 ---
 
 ## Full Stack
 
-| Concern | Technology |
-|---|---|
-| Backend API | ASP.NET Core Minimal API (.NET 10) |
-| Real-time push | SignalR (sensor updates to frontend) |
-| AI agents | Semantic Kernel + Ollama (local, on-Pi LLM) |
-| ORM / DB | EF Core 10 + PostgreSQL (Docker on dev; production Pi) |
-| CQRS dispatch | Custom channel-based dispatcher (`System.Threading.Channels` + `SemaphoreSlim`) |
-| Background polling | `BackgroundService` in infrastructure adapter projects |
-| Logging | Serilog (console + rolling file sink) |
-| Metrics | `System.Diagnostics.Metrics` (built-in .NET meter/counter) |
-| Frontend | React + TypeScript + TanStack Router + TanStack Query + Tailwind CSS |
-| Sensor bridge | Zigbee2MQTT over MQTT (Mosquitto broker) |
-| Deployment | Docker Compose on Raspberry Pi 5 |
-| Reverse proxy | Nginx (planned, not yet wired) |
-
----
-
-## Project Folder Structure
-
-Feature-based folders inside each layer — group by domain concept, not by type.
-
-```
-HomeAssistant.Domain/
-  PlantPots/
-    Entities/           ← PlantPot.cs, PlantSpecies.cs
-    Abstractions/       ← IPlantPotRepository.cs
-  SensorReadings/
-    Entities/           ← SensorReading.cs
-    Abstractions/       ← ISensorReadingRepository.cs, ISensorProvider.cs
-  Assistant/
-    Entities/           ← ChatSession.cs, ChatMessage.cs
-    Abstractions/       ← IChatSessionRepository.cs
-  Common/
-    Markers/            ← ICommand.cs, IQuery.cs
-    Handlers/           ← ICommandHandler.cs, IQueryHandler.cs
-
-HomeAssistant.Application/
-  PlantPots/
-    Commands/           ← e.g. UpdatePlantPotCommand.cs + Handler
-    Queries/            ← e.g. GetAllPotsQuery.cs + Handler
-  SensorReadings/
-    Queries/            ← e.g. GetLatestReadingsQuery.cs + Handler
-  Dispatching/
-    Abstractions/       ← ICommandDispatcher.cs
-    Services/           ← CommandDispatcher.cs, QueryDispatcher.cs
-  Agents/               ← GardenerAgent.cs, WeatherExpertAgent.cs, PlannerAgent.cs
-
-HomeAssistant.Infrastructure.Persistence/
-  Database/
-    AppDbContext.cs
-  Migrations/
-  PlantPots/
-    Repositories/       ← PlantPotRepository.cs
-    Configurations/     ← entity configurations
-  SensorReadings/
-    Repositories/       ← SensorReadingRepository.cs
-    Configurations/     ← entity configurations
-  Assistant/
-    Repositories/       ← ChatSessionRepository.cs
-    Configurations/     ← entity configurations
-
-HomeAssistant.Infrastructure.Sensors/
-  Sensors/
-    Providers/          ← MockSensorProvider.cs, Zigbee2MqttSensorProvider.cs
-
-HomeAssistant.Integrations.OpenMeteo/
-  Forecast/
-    Abstractions/       ← IOpenMeteoForecastClient.cs
-    Clients/            ← OpenMeteoForecastClient.cs
-    Configuration/      ← OpenMeteoClientOptions.cs
-    Contracts/          ← forecast request/response models
-    Exceptions/         ← OpenMeteoApiException.cs
-
-# Future split targets
-HomeAssistant.Infrastructure.Messaging/
-  Messaging/            ← MqttService.cs
-HomeAssistant.Infrastructure.BackgroundServices/
-  BackgroundServices/   ← SensorPollingService.cs
-
-HomeAssistant.Presentation/
-  Chat/
-    Abstractions/       ← IChatAssistant.cs
-    Contracts/          ← chat DTOs
-    RouteBuilders/      ← ChatRouteBuilder.cs
-    Endpoints/          ← one folder per endpoint, e.g. PostChatPrompt/PostChatPromptEndpoint.cs
-    Services/           ← OllamaChatAssistant.cs
-  Endpoints/            ← PlantPotEndpoints.cs, SensorReadingEndpoints.cs (extension methods)
-  Hubs/                 ← SensorHub.cs
-  Program.cs
-```
-
----
-
-## Key Files
-
-- `HomeAssistant.Presentation/Program.cs` – sole composition root; all DI registrations and route/hub mappings.
-- `HomeAssistant.Presentation/Properties/launchSettings.json` – HTTP `localhost:5064`, HTTPS `localhost:7008`.
-- `HomeAssistant.Presentation/HomeAssistant.Presentation.http` – quick manual endpoint tests.
-- `docker-compose.yml` – Postgres + Ollama services (at solution root). Use `docker compose up -d postgres ollama` to start locally.
-- `.env.example` – Template for environment variable overrides. Copy to `.env` and fill secrets before running.
-
----
-
-## Developer Workflows
-
-```powershell
-# Build entire solution
-dotnet build HomeAssistant.sln
-
-# Run API locally (HTTP, Development, uses mock ISensorProvider)
-dotnet run --project HomeAssistant.Presentation --launch-profile http
-
-# Add a NuGet package
-dotnet add HomeAssistant.Presentation package <PackageName>
-
-# Apply EF Core migration (persistence project)
-dotnet ef migrations add <Name> --project HomeAssistant.Infrastructure.Persistence --startup-project HomeAssistant.Presentation
-dotnet ef database update          --project HomeAssistant.Infrastructure.Persistence --startup-project HomeAssistant.Presentation
-```
+| Concern | Technology | Purpose |
+|---------|-----------|---------|
+| Backend | ASP.NET Core Minimal API (.NET 10) | HTTP surface |
+| Database | EF Core 10 + PostgreSQL | Persistence |
+| ORM | Entity Framework Core | Data mapping |
+| CQRS | System.Threading.Channels + SemaphoreSlim | Command dispatch |
+| Logging | Serilog | Structured logging |
+| Metrics | System.Diagnostics.Metrics | Built-in observability |
+| AI/LLM | Semantic Kernel + Ollama | Local language models |
+| Frontend | React + TypeScript + TanStack | Web UI |
+| Deployment | Docker Compose | Container orchestration |
 
 ---
 
 ## Conventions
 
-- **Minimal APIs only** – no MVC controllers. Routes in `Program.cs` or `IEndpointRouteBuilder` extension methods.
-- **Typed Results** – all endpoint return types use `Results.Ok<T>()`, `Results.NotFound()`, `Results.Problem()` etc. Annotate with `.Produces<T>()` for OpenAPI.
-- **CQRS via Channels** – write operations dispatch `ICommand` through a `Channel<ICommand>` backed by a `SemaphoreSlim` (max 4 concurrent on Pi 5). Read operations call `IQueryHandler<,>` directly (no channel needed).
-- **Repository Pattern** – all data access behind interfaces defined in `HomeAssistant.Domain`; implemented in `HomeAssistant.Infrastructure.Persistence`.
-- **Mock-first** – register `MockSensorProvider : ISensorProvider` in Development; swap for `Zigbee2MqttSensorProvider` in Production via environment check in `Program.cs`.
-- **Dependency Injection throughout** – no `new ConcreteService()` except in tests or factory methods.
-- **Composition adapter exception** – `HomeAssistant.Presentation` references only `HomeAssistant.Application` plus the infrastructure composition adapter project; concrete infra/integration registrations live in that adapter so Presentation code stays free of `HomeAssistant.Infrastructure.*` usings.
-- **`record` types for DTOs/responses** – defined in `HomeAssistant.Application` or near their endpoint; match TypeScript interface field-for-field.
-- **`Nullable` enabled** – all code must be null-safe; use `?` annotations and guard clauses.
-- **Async/Await** – no `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()`. All async methods accept `CancellationToken ct`.
-- **Serilog** – structured logging via Serilog with console + rolling file sink. Inject `ILogger<T>` everywhere; never use `Console.WriteLine`.
-- **Metrics** – use `System.Diagnostics.Metrics.Meter` for domain counters (e.g. sensor readings received, agent decisions made).
-- **OpenAPI** gated to Development: `app.MapOpenApi()` only inside `if (app.Environment.IsDevelopment())`.
-- **Configuration** – non-sensitive config in `appsettings.json`; secrets via environment variables (overriding `appsettings.json`) injected by Docker Compose in production. No secrets committed to source.
-- **Ollama** – Semantic Kernel connects to Ollama at `http://ollama:11434` (Docker) or `http://localhost:11434` (local dev), configured via `appsettings.json` `Ollama:BaseUrl` + `Ollama:Model`.
-- **Linux-compatible only** – no `System.Drawing`, Windows registry, or Win32 APIs (target: Raspberry Pi 5 / Linux arm64).
+- **Minimal APIs only** – no MVC controllers; map routes in extension methods
+- **Typed Results** – all endpoints return `Results.Ok<T>()`, `Results.NotFound()`, etc. with `.Produces<T>()`
+- **Repository Pattern** – inject interfaces, never `new` concrete classes
+- **`record` types for DTOs** – define request/response models as immutable records
+- **Nullable Reference Types enabled** – all code must be null-safe with `?` annotations
+- **Async/Await throughout** – no `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()`
+- **Dependency Injection only** – all services resolved via constructor injection
+- **Configuration via DI** – options classes bound from `IConfiguration` in Program.cs
+- **Serilog for logging** – `ILogger<T>` injected everywhere, never `Console.WriteLine`
+- **Metrics via Meter** – track domain events with built-in `System.Diagnostics.Metrics`
+- **OpenAPI in Development only** – gates Swagger/Scalar behind environment check
+- **Linux-compatible** – no Windows APIs; target Linux arm64 (Raspberry Pi)
 
 ---
 
 ## Agent Workflow
 
-All feature work follows this loop:
+All feature work follows this gated pipeline:
 
 ```
-Architect (Plan) → Engineer (Implement) → Reviewer (Review) → Git Commit (Commit)
-                         ↑                        |
-                         |   🔴 Structural issue  |
-                         +--------- revised Plan --+
-                         |
-                         |   🟡 Minor issue → inline fix → Reviewer re-checks → Git Commit
+Architect (Plan) → Engineer (Implement) → Reviewer (Audit) → Git Commit
+     ↑                                           |
+     |                    🔴 Structural Issue    |
+     +─────── back to Architect ────────────────+
+     
+     |                    🟡 Minor Issue ──→ Engineer (inline fix) ──→ Reviewer ──→ Git Commit
 ```
 
 | Role | File | Responsibility |
-|---|---|---|
-| **Architect** | `.github/agents/architect.agent.md` | File-by-file plan, API contracts (C# DTOs + TS interfaces), layer assignments |
-| **Engineer** | `.github/agents/engineer.agent.md` | Implementation following the plan; interface-first, XML docs, `.http` updates |
-| **Reviewer** | `.github/agents/reviewer.agent.md` | 13-point checklist; classifies findings as Structural (→ re-plan) or Minor (→ inline fix) |
-| **Git Commit** | `.github/agents/git-commit.agent.md` | Stages and commits approved changes using Semantic Conventional Commits; enforces safety rules |
-| **Orchestrator (optional)** | `.github/agents/orchestrator.agent.md` | Convenience wrapper that coordinates Architect → Engineer → Reviewer → Git Commit while preserving the same gates |
+|------|------|---|
+| **Architect** | `.github/agents/architect.agent.md` | Feature plan, file-by-file breakdown, API contracts, layer assignments |
+| **Engineer** | `.github/agents/engineer.agent.md` | Implement exactly per plan, follow conventions, interface-first, no deviations |
+| **Reviewer** | `.github/agents/reviewer.agent.md` | Audit 13-point checklist, classify issues (structural vs minor), approve or reject |
+| **Git Commit** | `.github/agents/git-commit.agent.md` | Stage changes, atomic commits, Conventional Commit messages, safety checks |
 
-**Start every new feature by invoking the Architect agent first.**
-
-The orchestrator is optional convenience mode and does not replace the canonical four-agent workflow.
+**Gate:** No implementation begins until Architect plan is approved. No review until Engineer is complete. No commit until Reviewer approves.
 
 ---
 
 ## Schema Change Policy
 
-**Any pull request that changes the data model — new entity, new property, renamed column, new index, changed relationship, or changed max length — MUST include:**
+### When a migration is required
 
-1. **An EF Core migration** created via:
-   ```powershell
-   dotnet ef migrations add <MeaningfulName> `
-     --project HomeAssistant.Infrastructure.Persistence `
-     --startup-project HomeAssistant.Presentation
-   ```
+Any change to persistence schema (new entity, new column, renamed column, changed relationships, index changes) **MUST** include:
 
-2. **A confirmed `database update`** applied to the local development database:
-   ```powershell
-   dotnet ef database update `
-     --project HomeAssistant.Infrastructure.Persistence `
-     --startup-project HomeAssistant.Presentation
-   ```
+1. **EF Core migration** created and tested
+2. **Migration applied** to development database
+3. **Clean build** after migration creation
 
-3. **A clean `dotnet build HomeAssistant.sln`** after migration creation.
+### When a migration is NOT required
 
-### What does NOT require a migration
-
-- Query logic or repository method changes with no schema impact.
-- Configuration or `appsettings.json` changes.
-- Adding/removing DI registrations.
-
-### Entity configuration rules
-
-- Keep entity configurations **out of `AppDbContext`**.
-- Use one `IEntityTypeConfiguration<T>` file per entity, co-located in the feature folder.
-- `AppDbContext.OnModelCreating` must only call `modelBuilder.ApplyConfigurationsFromAssembly(...)`.
-
-> See `.github/instructions/persistence.instructions.md` for the full detail.
+- Query/repository logic changes with no schema impact
+- Configuration or options changes
+- DI registration changes
+- Service implementations
 
 ---
 
-## Testing
+## Testing Strategy
 
-- No test project yet. When adding: `xUnit`, named `HomeAssistant.<Layer>.Tests`.
-- Use `MockSensorProvider` and in-memory EF Core (`UseInMemoryDatabase`) for unit tests.
-- Integration tests should spin up the full host via `WebApplicationFactory<Program>`.
+- **Unit tests:** Mock repositories and external services
+- **Integration tests:** Spin up full host via `WebApplicationFactory<Program>`
+- **In-memory persistence:** Use EF Core `UseInMemoryDatabase` for unit testing
+- **Docker for local dev:** Use docker-compose to run real PostgreSQL + Ollama locally
 
 ---
 
-## Docker Deployment (planned)
+## Deployment Model
 
-`docker-compose.yml` at solution root will define:
+Single docker-compose.yml defines all services:
+- API service (linux/arm64 self-contained publish)
+- Frontend service (Nginx serving React build)
+- External services (PostgreSQL, Ollama, message brokers, etc.)
+- No secrets in images; inject via environment variables at runtime
 
-```
-services:
-  api          → HomeAssistant.Presentation  (linux/arm64)
-  frontend     → React build served by Nginx
-  mosquitto    → MQTT broker
-  zigbee2mqtt  → Zigbee USB bridge → MQTT
-  ollama       → Local LLM server (http://ollama:11434)
-```
+---
 
-Secrets injected at runtime via Docker environment variables — never baked into images.
+## Key Principles (Non-Negotiable)
 
-Publish the .NET app as a self-contained linux-arm64 image:
-```dockerfile
-dotnet publish -r linux-arm64 --self-contained true
-```
+1. **Clean Architecture Layers** – strict separation, downward-only dependencies
+2. **Interface-First Design** – define contracts before implementations
+3. **Dependency Injection** – compose everything in one place (Program.cs)
+4. **CQRS Discipline** – write operations via commands, read operations via queries
+5. **Repository Pattern** – all data access behind interfaces
+6. **No `new ConcreteService()`** – except in Program.cs, tests, or static factories
+7. **Async/Await Throughout** – no blocking calls
+8. **Null Safety** – nullable reference types enabled, guard clauses everywhere
+9. **Serilog Everywhere** – structured logging, no Console.WriteLine
+10. **Testability First** – interfaces enable mocking and substitution
+
+---
+
+## See Also
+
+- **`.github/agents/architect.agent.md`** – Planning phase rules and templates
+- **`.github/agents/engineer.agent.md`** – Implementation rules and patterns
+- **`.github/agents/reviewer.agent.md`** – 13-point audit checklist
+- **`.github/agents/git-commit.agent.md`** – Commit message conventions
+- **`.github/instructions/architecture.instructions.md`** – Layer rules and patterns
+- **`.github/instructions/dependency-injection.instructions.md`** – DI composition patterns
+- **`.github/instructions/interface-first.instructions.md`** – Contract definition principles
