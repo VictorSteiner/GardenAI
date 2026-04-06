@@ -21,33 +21,33 @@ public sealed record OpenMeteoForecastResponse
     public int UtcOffsetSeconds { get; init; }
 
     [JsonPropertyName("timezone")]
-    public string? Timezone { get; init; }
+    public string Timezone { get; init; }
 
     [JsonPropertyName("timezone_abbreviation")]
-    public string? TimezoneAbbreviation { get; init; }
+    public string TimezoneAbbreviation { get; init; }
 
     [JsonPropertyName("elevation")]
     public double? Elevation { get; init; }
 
     [JsonPropertyName("current_units")]
-    public Dictionary<string, string>? CurrentUnits { get; init; }
+    public Dictionary<string, string> CurrentUnits { get; init; }
 
     [JsonPropertyName("current")]
-    public Dictionary<string, JsonElement>? Current { get; init; }
+    public Dictionary<string, JsonElement> Current { get; init; }
 
     [JsonPropertyName("hourly_units")]
-    public Dictionary<string, string>? HourlyUnits { get; init; }
+    public Dictionary<string, string> HourlyUnits { get; init; }
 
     [JsonPropertyName("hourly")]
-    public OpenMeteoTimeSeriesBlock? Hourly { get; init; }
+    public OpenMeteoTimeSeriesBlock Hourly { get; init; }
 
     [JsonPropertyName("daily_units")]
-    public Dictionary<string, string>? DailyUnits { get; init; }
+    public Dictionary<string, string> DailyUnits { get; init; }
 
     [JsonPropertyName("daily")]
-    public OpenMeteoTimeSeriesBlock? Daily { get; init; }
+    public OpenMeteoTimeSeriesBlock Daily { get; init; }
 
     [JsonExtensionData]
-    public Dictionary<string, JsonElement>? ExtensionData { get; init; }
+    public Dictionary<string, JsonElement> ExtensionData { get; init; }
 }
 
