@@ -1,10 +1,8 @@
-using HomeAssistant.Application.Messaging.Abstractions;
-using HomeAssistant.Application.Messaging.Configuration;
 using HomeAssistant.Application.Weather.Abstractions;
 using HomeAssistant.Application.Weather.Configuration;
 using HomeAssistant.Domain.Assistant.Abstractions;
 using HomeAssistant.Domain.Common.Abstractions;
-using HomeAssistant.Infrastructure.Messaging.Messaging.Services;
+using HomeAssistant.Infrastructure.Messaging;
 using HomeAssistant.Infrastructure.Persistence.Assistant.Repositories;
 using HomeAssistant.Infrastructure.Persistence.Database;
 using HomeAssistant.Integrations.OpenMeteo.Forecast.Clients;
@@ -22,10 +20,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IChatSessionRepository, ChatSessionRepository>();
 
 // External Adapters - MQTT
-var mqttOptions = new MqttClientOptions();
-builder.Configuration.GetSection("Mqtt").Bind(mqttOptions);
-builder.Services.AddSingleton(mqttOptions);
-builder.Services.AddSingleton<IMqttClient, MqttClientService>();
+builder.Services.AddMqttClient(builder.Configuration);
 
 // External Adapters - OpenMeteo
 var openMeteoOptions = new OpenMeteoClientOptions();
