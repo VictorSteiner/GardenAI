@@ -42,7 +42,7 @@ SensorReading         – potId, timestamp, soilMoisture (%), temperatureC
 Council of Agents (orchestrated in `HomeAssistant.Application`):
 - **Gardener** – interprets sensor data, decides watering actions
 - **Weather Expert** – fetches/forecasts weather to adjust schedules
-- **Planner** – coordinates schedules across all 6 pots
+- **Planner** – coordinates schedules across all configured pots
 
 ---
 
