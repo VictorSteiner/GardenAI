@@ -16,7 +16,7 @@ This repository uses GitHub automation for CI, pull request hygiene, dependency 
   - If missing, auto-links from branch names that include the issue number (for example `feature/123-short-title` -> `Refs #123`).
   - Fails the check when no explicit link exists and no issue number can be inferred.
 
-- `.github/workflows/bot-auto-approve.yml`
+- `.github/workflows/pr-auto-approve.yml`
   - Runs on `pull_request_target` for `opened`, `reopened`, `synchronize`, `ready_for_review`, and `labeled` events.
   - Uses a dedicated eligibility step that logs why a PR is approved or skipped before attempting auto-approval.
   - Requires all of the following before approval can happen:
