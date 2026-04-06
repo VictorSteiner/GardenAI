@@ -79,6 +79,72 @@ HomeAssistant.Application/Chat/
 	  ChatFunctionCall.cs
 ```
 
+## SOLID Guardrails
+
+Apply these checks during planning, implementation, and review.
+
+### Single Responsibility (SRP)
+
+- A service should have one primary reason to change (one business workflow family).
+- Avoid mixing orchestration, persistence mapping, transport formatting, and protocol concerns in one class.
+- If a class has clearly distinct sections for unrelated workflows, split it into focused services.
+
+### Interface Segregation (ISP)
+
+- Prefer small, purpose-focused interfaces over broad "do everything" interfaces.
+- Consumers should not depend on methods they do not call.
+- Split read and write responsibilities when callers only need one side.
+
+### Dependency Inversion (DIP)
+
+- Core workflows depend on abstractions (`I...`) rather than concrete infrastructure types.
+- Add a new abstraction seam when logic must be testable independent of transport/provider details.
+
+## Refactor Triggers
+
+Treat these as practical thresholds that trigger a split proposal:
+
+- A service grows beyond ~250 lines and contains multiple workflow domains.
+- An interface exceeds ~10 methods or has methods used by different caller groups.
+- A folder mixes 3+ responsibility kinds (for example services + contracts + provider client glue).
+- New feature work requires touching unrelated methods in the same class to avoid regressions.
+- A constructor requires 8+ dependencies, suggesting orchestration concerns are over-aggregated.
+
+When a trigger is hit, create/refine sub-issues and split by business capability rather than by technical layer names alone.
+
+## Service Splitting Example
+
+```text
+Before
+GardenPlannerService
+  - chat orchestration
+  - tool execution routing
+  - history formatting
+  - MQTT publish payload shaping
+
+After
+GardenPlannerChatService         # prompt and chat loop orchestration
+GardenPlannerToolRouter          # tool-call dispatching
+GardenPlannerHistoryPublisher    # history payload publishing
+GardenPlannerResponsePublisher   # planner response publishing
+```
+
+## Interface Sizing Example
+
+```text
+Before
+IGardenPlannerFunctionService
+  - save/update commands
+  - room queries
+  - dashboard queries
+  - advice generation
+
+After
+IGardenPlannerCommandService
+IGardenPlannerQueryService
+IGardenPlannerAdviceService
+```
+
 ## Exceptions
 
 These are acceptable exceptions when they improve clarity rather than reduce it:
