@@ -16,10 +16,10 @@ public sealed class MqttClientOptions
     public string ClientId { get; set; } = "homeassistant-api";
 
     /// <summary>MQTT broker username (optional).</summary>
-    public string? Username { get; set; }
+    public string Username { get; set; }
 
     /// <summary>MQTT broker password (optional; treated as a secret).</summary>
-    public string? Password { get; set; }
+    public string Password { get; set; }
 
     /// <summary>MQTT keep-alive interval in seconds.</summary>
     public int KeepAliveSeconds { get; set; } = 60;

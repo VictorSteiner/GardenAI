@@ -19,7 +19,7 @@ public sealed class MqttClientService : AppMqttClient, IAsyncDisposable
     private readonly ILogger<MqttClientService> _logger;
 
     /// <inheritdoc/>
-    public event Func<string, string, Task>? MessageReceivedAsync;
+    public event Func<string, string, Task> MessageReceivedAsync;
 
     /// <summary>
     /// Initialises the service and wires connection and message events from
@@ -74,7 +74,7 @@ public sealed class MqttClientService : AppMqttClient, IAsyncDisposable
             await _connectionManager.Client.PublishAsync(message, ct);
 
             _logger.LogDebug("Published message to topic {Topic} (size: {Size} bytes).", topic, payload.Length);
-            MqttMetrics.MessagesPublished.Add(1, new KeyValuePair<string, object?>("topic", topic));
+            MqttMetrics.MessagesPublished.Add(1, new KeyValuePair<string, object>("topic", topic));
         }
         catch (Exception ex)
         {
@@ -157,7 +157,7 @@ public sealed class MqttClientService : AppMqttClient, IAsyncDisposable
             var payload = arg.ApplicationMessage.ConvertPayloadToString();
 
             _logger.LogDebug("Received MQTT message on topic {Topic} (size: {Size} bytes).", topic, payload.Length);
-            MqttMetrics.MessagesReceived.Add(1, new KeyValuePair<string, object?>("topic", topic));
+            MqttMetrics.MessagesReceived.Add(1, new KeyValuePair<string, object>("topic", topic));
 
             if (MessageReceivedAsync is not null)
                 await MessageReceivedAsync.Invoke(topic, payload);
