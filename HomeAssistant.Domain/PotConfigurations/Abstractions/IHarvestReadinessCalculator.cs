@@ -52,7 +52,7 @@ public interface IHarvestReadinessCalculator
     /// <returns>Health status string ("healthy", "warning", or "critical").</returns>
     string DetermineHealthStatus(
         int averageReadiness,
-        SensorReading? latestReading,
+        SensorReading latestReading,
         double idealMoistureMin,
         double idealMoistureMax,
         double idealTempMinC,

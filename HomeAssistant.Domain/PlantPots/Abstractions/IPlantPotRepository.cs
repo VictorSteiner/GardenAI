@@ -6,7 +6,7 @@ namespace HomeAssistant.Domain.PlantPots.Abstractions;
 public interface IPlantPotRepository
 {
     /// <summary>Returns the pot with the given identifier, or <c>null</c> if not found.</summary>
-    Task<PlantPot?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<PlantPot> GetByIdAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>Returns all plant pots.</summary>
     Task<IReadOnlyList<PlantPot>> GetAllAsync(CancellationToken ct = default);

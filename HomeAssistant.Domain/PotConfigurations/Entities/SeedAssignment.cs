@@ -22,6 +22,6 @@ public sealed class SeedAssignment
     public string Status { get; init; } = "growing";
 
     /// <summary>Optional notes, e.g., companion planting info or special care instructions.</summary>
-    public string? Notes { get; init; }
+    public string Notes { get; init; }
 }
 
