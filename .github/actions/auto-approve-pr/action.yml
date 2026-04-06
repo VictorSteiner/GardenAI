@@ -1,0 +1,56 @@
+﻿name: Auto Approve Pull Request
+description: Determine PR eligibility and auto-approve trusted/internal pull requests.
+inputs:
+  github-token:
+    description: Token used to submit PR approval reviews.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Determine auto-approve eligibility
+      id: eligibility
+      uses: actions/github-script@v7
+      env:
+        BOT_GITHUB_TOKEN_PRESENT: ${{ inputs.github-token != '' }}
+      with:
+        script: |
+          const pr = context.payload.pull_request;
+          const trustedAssociations = new Set(["OWNER", "MEMBER", "COLLABORATOR"]);
+          const labels = (pr.labels ?? []).map((label) => label.name);
+
+          let eligible = false;
+          let reason = "Skipped: pull request does not meet auto-approve requirements.";
+
+          if (pr.draft) {
+            reason = "Skipped: pull request is still a draft.";
+          } else if (process.env.BOT_GITHUB_TOKEN_PRESENT !== "true") {
+            reason = "Skipped: BOT_GITHUB_TOKEN is not configured.";
+          } else if (pr.user?.login === "dependabot[bot]") {
+            reason = "Skipped: dependabot pull requests require manual approval.";
+          } else if (pr.head?.repo?.full_name !== pr.base?.repo?.full_name) {
+            reason = "Skipped: fork pull requests are not eligible for auto-approval.";
+          } else if (trustedAssociations.has(pr.author_association)) {
+            eligible = true;
+            reason = `Approved: author association '${pr.author_association}' is trusted.`;
+          } else if (labels.includes("bot-auto-approve")) {
+            eligible = true;
+            reason = `Approved: bot-auto-approve label override is present for untrusted author association '${pr.author_association}'.`;
+          } else {
+            reason = `Skipped: author association '${pr.author_association}' is not trusted and no bot-auto-approve override label is present.`;
+          }
+
+          core.setOutput("eligible", eligible ? "true" : "false");
+          core.setOutput("reason", reason);
+          core.info(reason);
+
+    - name: Approve pull request
+      if: steps.eligibility.outputs.eligible == 'true'
+      uses: hmarr/auto-approve-action@v4
+      with:
+        github-token: ${{ inputs.github-token }}
+
+    - name: Log auto-approve skip reason
+      if: steps.eligibility.outputs.eligible != 'true'
+      shell: bash
+      run: echo "${{ steps.eligibility.outputs.reason }}"
+
