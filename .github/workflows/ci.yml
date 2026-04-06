@@ -3,6 +3,22 @@
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'HomeAssistant*/**'
+      - '*.csproj'
+      - 'Directory.Packages.props'
+      - 'frontend/**'
+      - '.github/workflows/ci.yml'
+      - '.node-version'
+  pull_request_target:
+    branches: [main]
+    paths:
+      - 'HomeAssistant*/**'
+      - '*.csproj'
+      - 'Directory.Packages.props'
+      - 'frontend/**'
+      - '.github/workflows/ci.yml'
+      - '.node-version'
   push:
     branches: [main]
 
