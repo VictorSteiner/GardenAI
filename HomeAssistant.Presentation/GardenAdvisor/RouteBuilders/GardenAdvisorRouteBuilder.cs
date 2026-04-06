@@ -1,5 +1,5 @@
 ﻿using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostGardenPlannerChat;
-using HomeAssistant.Presentation.GardenAdvisor.Contracts;
+using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostGardenPlannerChat.Contracts;
 
 namespace HomeAssistant.Presentation.GardenAdvisor.RouteBuilders;
 

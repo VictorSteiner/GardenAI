@@ -11,6 +11,8 @@ using HomeAssistant.Application.PotConfigurations.Abstractions;
 using HomeAssistant.Domain.PotConfigurations.Abstractions;
 using HomeAssistant.Presentation.GardenAdvisor.Abstractions;
 using HomeAssistant.Presentation.GardenAdvisor.Contracts;
+using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PlannerFunctions.Contracts;
+using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostGardenPlannerChat.Contracts;
 using Microsoft.Extensions.Options;
 
 namespace HomeAssistant.Presentation.GardenAdvisor.Services;

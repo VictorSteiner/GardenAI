@@ -1,8 +1,11 @@
 ﻿using HomeAssistant.Application.Dispatching;
-using HomeAssistant.Application.PotConfigurations.Commands;
 using HomeAssistant.Domain.PotConfigurations.Abstractions;
 using HomeAssistant.Presentation.GardenAdvisor.Contracts;
+using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostSavePotConfiguration.Contracts;
 using Microsoft.AspNetCore.Http.HttpResults;
+using SavePotConfigurationCommand = HomeAssistant.Application.PotConfigurations.Commands.SavePotConfigurationCommand;
+using SavePotConfigurationCommandRequest = HomeAssistant.Application.PotConfigurations.Commands.SavePotConfigurationRequest;
+using SeedAssignmentCommandRequest = HomeAssistant.Application.PotConfigurations.Commands.SeedAssignmentRequest;
 
 namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostSavePotConfiguration;
 
@@ -28,11 +31,11 @@ public sealed class PostSavePotConfigurationEndpoint
             return TypedResults.BadRequest();
 
         // Convert presentation request to application request
-        var appRequest = new SavePotConfigurationRequest(
+        var appRequest = new SavePotConfigurationCommandRequest(
             request.RoomAreaId,
             request.RoomName,
             request.Seeds
-                .Select(s => new SeedAssignmentRequest(
+                .Select(s => new SeedAssignmentCommandRequest(
                     s.PlantName,
                     s.SeedName,
                     s.PlantedDate,

@@ -11,6 +11,9 @@ using HomeAssistant.Domain.PotConfigurations.Abstractions;
 using HomeAssistant.Domain.SensorReadings.Abstractions;
 using HomeAssistant.Presentation.GardenAdvisor.Abstractions;
 using HomeAssistant.Presentation.GardenAdvisor.Contracts;
+using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PlannerFunctions.Contracts;
+using SavePotConfigurationCommandRequest = HomeAssistant.Application.PotConfigurations.Commands.SavePotConfigurationRequest;
+using SeedAssignmentCommandRequest = HomeAssistant.Application.PotConfigurations.Commands.SeedAssignmentRequest;
 
 namespace HomeAssistant.Presentation.GardenAdvisor.Services;
 
@@ -83,10 +86,10 @@ public sealed class GardenPlannerFunctionService : IGardenPlannerFunctionService
         await _commandDispatcher.DispatchAsync(
             new SavePotConfigurationCommand(
                 potId.Value,
-                new SavePotConfigurationRequest(
+                new SavePotConfigurationCommandRequest(
                     request.RoomAreaId,
                     roomName,
-                    [new SeedAssignmentRequest(
+                    [new SeedAssignmentCommandRequest(
                         request.PlantName,
                         request.SeedName,
                         request.PlantedDate ?? DateTimeOffset.UtcNow,
