@@ -36,10 +36,10 @@ public interface IGardenPlannerFunctionService
     Task<IReadOnlyList<HarvestReadinessResponse>> GetHarvestReadinessAsync(HarvestReadinessFunctionRequest request, CancellationToken ct = default);
 
     /// <summary>Returns the latest in-memory garden advice, if available.</summary>
-    GardenAdviceResponse? GetLatestAdvice();
+    HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse? GetLatestAdvice();
 
     /// <summary>Generates fresh garden advice and optionally publishes MQTT updates.</summary>
-    Task<GardenAdviceResponse> GenerateAdviceAsync(GeneratePlannerAdviceFunctionRequest request, CancellationToken ct = default);
+    Task<HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse> GenerateAdviceAsync(GeneratePlannerAdviceFunctionRequest request, CancellationToken ct = default);
 
     /// <summary>Clears the in-memory planner chat history.</summary>
     string ClearPlannerHistory();

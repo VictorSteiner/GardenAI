@@ -1,5 +1,5 @@
-﻿using HomeAssistant.Presentation.GardenAdvisor.Abstractions;
-using HomeAssistant.Presentation.GardenAdvisor.Configuration;
+﻿using HomeAssistant.Application.GardenAdvisor.Abstractions;
+using HomeAssistant.Application.GardenAdvisor.Configuration;
 using Microsoft.Extensions.Options;
 
 namespace HomeAssistant.Presentation.GardenAdvisor.BackgroundServices;

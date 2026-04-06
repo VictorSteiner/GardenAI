@@ -72,14 +72,14 @@ public static class GardenPlannerFunctionEndpoints
         group.MapGet("/advice/latest", GetLatestAdvice)
             .WithName("PlannerFunctionGetLatestAdvice")
             .WithOpenApi()
-            .Produces<GardenAdviceResponse>(StatusCodes.Status200OK)
+            .Produces<HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/advice/generate", GenerateAdvice)
             .WithName("PlannerFunctionGenerateAdvice")
             .WithOpenApi()
             .Accepts<GeneratePlannerAdviceFunctionRequest>("application/json")
-            .Produces<GardenAdviceResponse>(StatusCodes.Status200OK);
+            .Produces<HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse>(StatusCodes.Status200OK);
 
         group.MapPost("/history/clear", ClearHistory)
             .WithName("PlannerFunctionClearHistory")
@@ -191,7 +191,7 @@ public static class GardenPlannerFunctionEndpoints
         return TypedResults.Ok(await service.GetHarvestReadinessAsync(new HarvestReadinessFunctionRequest(filterByStatus), ct));
     }
 
-    private static Results<Ok<GardenAdviceResponse>, NotFound> GetLatestAdvice(IGardenPlannerFunctionService service)
+    private static Results<Ok<HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse>, NotFound> GetLatestAdvice(IGardenPlannerFunctionService service)
     {
         ArgumentNullException.ThrowIfNull(service);
 
@@ -199,7 +199,7 @@ public static class GardenPlannerFunctionEndpoints
         return latest is null ? TypedResults.NotFound() : TypedResults.Ok(latest);
     }
 
-    private static async Task<Ok<GardenAdviceResponse>> GenerateAdvice(
+    private static async Task<Ok<HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse>> GenerateAdvice(
         GeneratePlannerAdviceFunctionRequest? request,
         IGardenPlannerFunctionService service,
         CancellationToken ct)

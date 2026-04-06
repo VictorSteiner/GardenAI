@@ -1,5 +1,5 @@
-﻿using HomeAssistant.Presentation.GardenAdvisor.Abstractions;
-using HomeAssistant.Presentation.GardenAdvisor.Contracts;
+﻿using HomeAssistant.Application.GardenAdvisor.Abstractions;
+using HomeAssistant.Application.GardenAdvisor.Contracts;
 
 namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.GetLatestGardenAdvice;
 
