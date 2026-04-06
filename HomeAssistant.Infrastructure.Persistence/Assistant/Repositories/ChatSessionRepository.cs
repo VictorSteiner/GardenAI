@@ -29,7 +29,7 @@ public sealed class ChatSessionRepository : IChatSessionRepository
     }
 
     /// <inheritdoc/>
-    public async Task<ChatSession?> GetSessionAsync(Guid sessionId, CancellationToken ct = default)
+    public async Task<ChatSession> GetSessionAsync(Guid sessionId, CancellationToken ct = default)
     {
         if (sessionId == Guid.Empty) throw new ArgumentException("Session id must not be empty.", nameof(sessionId));
 
