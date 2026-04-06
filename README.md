@@ -56,7 +56,7 @@ API URLs (Development):
 - `Mqtt.PublishMockReadings = true`
 - `Mqtt.MockPublishIntervalSeconds = 10`
 
-When the API runs in `Development`, `MockSensorProvider` publishes 6 pot readings to:
+When the API runs in `Development`, `MockSensorProvider` publishes readings for the configured pot identity map to:
 
 - `homeassistant/test/mock-sensors/<pot-guid>`
 
