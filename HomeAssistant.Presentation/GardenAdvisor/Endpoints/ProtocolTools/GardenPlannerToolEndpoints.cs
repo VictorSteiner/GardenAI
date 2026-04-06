@@ -1,91 +1,91 @@
 ﻿using HomeAssistant.Presentation.GardenAdvisor.Abstractions;
 using HomeAssistant.Application.GardenAdvisor.Contracts.Advice;
 using HomeAssistant.Presentation.GardenAdvisor.Contracts;
-using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PlannerFunctions.Contracts;
+using HomeAssistant.Presentation.GardenAdvisor.Endpoints.ProtocolTools.Contracts;
 using AppGardenAdviceResponse = HomeAssistant.Application.GardenAdvisor.Contracts.Advice.GardenAdviceResponse;
 using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.PlannerFunctions;
+namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.ProtocolTools;
 
-/// <summary>Maps dedicated planner workflow endpoints under <c>/api/garden/planner/functions</c>.</summary>
-public static class GardenPlannerFunctionEndpoints
+/// <summary>Maps dedicated planner tool endpoints under <c>/api/garden/planner/functions</c>.</summary>
+public static class GardenPlannerToolEndpoints
 {
-    /// <summary>Maps planner function endpoints.</summary>
-    public static IEndpointRouteBuilder MapGardenPlannerFunctionEndpoints(this IEndpointRouteBuilder endpoints)
+    /// <summary>Maps planner tool endpoints.</summary>
+    public static IEndpointRouteBuilder MapGardenPlannerToolEndpoints(this IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
         var group = endpoints.MapGroup("/api/garden/planner/functions")
-            .WithTags("GardenPlannerFunctions");
+            .WithTags("GardenPlannerTools");
 
         group.MapPost("/pots/save", SavePotConfiguration)
-            .WithName("PlannerFunctionSavePotConfiguration")
+            .WithName("PlannerToolSavePotConfiguration")
             .WithOpenApi()
-            .Accepts<SavePlannerPotConfigurationFunctionRequest>("application/json")
+            .Accepts<SavePotConfigurationRequest>("application/json")
             .Produces<string>(StatusCodes.Status200OK)
             .Produces<string>(StatusCodes.Status400BadRequest);
 
         group.MapPost("/pots/update-seed-status", UpdateSeedStatus)
-            .WithName("PlannerFunctionUpdateSeedStatus")
+            .WithName("PlannerToolUpdateSeedStatus")
             .WithOpenApi()
-            .Accepts<UpdatePlannerSeedStatusFunctionRequest>("application/json")
+            .Accepts<UpdateSeedStatusRequest>("application/json")
             .Produces<string>(StatusCodes.Status200OK)
             .Produces<string>(StatusCodes.Status400BadRequest);
 
         group.MapPost("/pots/status", GetPotStatus)
-            .WithName("PlannerFunctionGetPotStatus")
+            .WithName("PlannerToolGetPotStatus")
             .WithOpenApi()
-            .Accepts<PotNumberFunctionRequest>("application/json")
+            .Accepts<PotNumberRequest>("application/json")
             .Produces<string>(StatusCodes.Status200OK)
             .Produces<string>(StatusCodes.Status400BadRequest);
 
         group.MapGet("/pots", GetAllPotsStatus)
-            .WithName("PlannerFunctionGetAllPotsStatus")
+            .WithName("PlannerToolGetAllPotsStatus")
             .WithOpenApi()
             .Produces<string>(StatusCodes.Status200OK);
 
         group.MapPost("/pots/sensors", GetSensorReadings)
-            .WithName("PlannerFunctionGetSensorReadings")
+            .WithName("PlannerToolGetSensorReadings")
             .WithOpenApi()
-            .Accepts<PotNumberFunctionRequest>("application/json")
+            .Accepts<PotNumberRequest>("application/json")
             .Produces<string>(StatusCodes.Status200OK)
             .Produces<string>(StatusCodes.Status400BadRequest);
 
         group.MapGet("/rooms", GetAvailableRooms)
-            .WithName("PlannerFunctionGetAvailableRooms")
+            .WithName("PlannerToolGetAvailableRooms")
             .WithOpenApi()
             .Produces<IReadOnlyList<RoomResponse>>(StatusCodes.Status200OK);
 
         group.MapGet("/rooms/{roomAreaId}", GetRoomSummary)
-            .WithName("PlannerFunctionGetRoomSummary")
+            .WithName("PlannerToolGetRoomSummary")
             .WithOpenApi()
             .Produces<RoomSummaryResponse>(StatusCodes.Status200OK)
             .Produces<string>(StatusCodes.Status400BadRequest);
 
         group.MapGet("/dashboard", GetDashboard)
-            .WithName("PlannerFunctionGetDashboard")
+            .WithName("PlannerToolGetDashboard")
             .WithOpenApi()
             .Produces<DashboardAggregationResponse>(StatusCodes.Status200OK);
 
         group.MapGet("/harvest-readiness", GetHarvestReadiness)
-            .WithName("PlannerFunctionGetHarvestReadiness")
+            .WithName("PlannerToolGetHarvestReadiness")
             .WithOpenApi()
             .Produces<IReadOnlyList<HarvestReadinessResponse>>(StatusCodes.Status200OK);
 
         group.MapGet("/advice/latest", GetLatestAdvice)
-            .WithName("PlannerFunctionGetLatestAdvice")
+            .WithName("PlannerToolGetLatestAdvice")
             .WithOpenApi()
             .Produces<AppGardenAdviceResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/advice/generate", GenerateAdvice)
-            .WithName("PlannerFunctionGenerateAdvice")
+            .WithName("PlannerToolGenerateAdvice")
             .WithOpenApi()
-            .Accepts<GeneratePlannerAdviceFunctionRequest>("application/json")
+            .Accepts<GenerateAdviceRequest>("application/json")
             .Produces<AppGardenAdviceResponse>(StatusCodes.Status200OK);
 
         group.MapPost("/history/clear", ClearHistory)
-            .WithName("PlannerFunctionClearHistory")
+            .WithName("PlannerToolClearHistory")
             .WithOpenApi()
             .Produces<string>(StatusCodes.Status200OK);
 
@@ -93,8 +93,8 @@ public static class GardenPlannerFunctionEndpoints
     }
 
     private static async Task<Results<Ok<string>, BadRequest<string>>> SavePotConfiguration(
-        SavePlannerPotConfigurationFunctionRequest request,
-        IGardenPlannerFunctionService service,
+        SavePotConfigurationRequest request,
+        IGardenPlannerToolService service,
         CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -107,8 +107,8 @@ public static class GardenPlannerFunctionEndpoints
     }
 
     private static async Task<Results<Ok<string>, BadRequest<string>>> UpdateSeedStatus(
-        UpdatePlannerSeedStatusFunctionRequest request,
-        IGardenPlannerFunctionService service,
+        UpdateSeedStatusRequest request,
+        IGardenPlannerToolService service,
         CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -121,8 +121,8 @@ public static class GardenPlannerFunctionEndpoints
     }
 
     private static async Task<Results<Ok<string>, BadRequest<string>>> GetPotStatus(
-        PotNumberFunctionRequest request,
-        IGardenPlannerFunctionService service,
+        PotNumberRequest request,
+        IGardenPlannerToolService service,
         CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -135,7 +135,7 @@ public static class GardenPlannerFunctionEndpoints
     }
 
     private static async Task<Ok<string>> GetAllPotsStatus(
-        IGardenPlannerFunctionService service,
+        IGardenPlannerToolService service,
         CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(service);
@@ -143,8 +143,8 @@ public static class GardenPlannerFunctionEndpoints
     }
 
     private static async Task<Results<Ok<string>, BadRequest<string>>> GetSensorReadings(
-        PotNumberFunctionRequest request,
-        IGardenPlannerFunctionService service,
+        PotNumberRequest request,
+        IGardenPlannerToolService service,
         CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -157,7 +157,7 @@ public static class GardenPlannerFunctionEndpoints
     }
 
     private static async Task<Ok<IReadOnlyList<RoomResponse>>> GetAvailableRooms(
-        IGardenPlannerFunctionService service,
+        IGardenPlannerToolService service,
         CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(service);
@@ -166,7 +166,7 @@ public static class GardenPlannerFunctionEndpoints
 
     private static async Task<Results<Ok<RoomSummaryResponse>, BadRequest<string>>> GetRoomSummary(
         string roomAreaId,
-        IGardenPlannerFunctionService service,
+        IGardenPlannerToolService service,
         CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(service);
@@ -174,11 +174,11 @@ public static class GardenPlannerFunctionEndpoints
         if (string.IsNullOrWhiteSpace(roomAreaId))
             return TypedResults.BadRequest("Room area ID is required.");
 
-        return TypedResults.Ok(await service.GetRoomSummaryAsync(new RoomAreaFunctionRequest(roomAreaId), ct));
+        return TypedResults.Ok(await service.GetRoomSummaryAsync(new RoomAreaRequest(roomAreaId), ct));
     }
 
     private static async Task<Ok<DashboardAggregationResponse>> GetDashboard(
-        IGardenPlannerFunctionService service,
+        IGardenPlannerToolService service,
         CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(service);
@@ -187,14 +187,14 @@ public static class GardenPlannerFunctionEndpoints
 
     private static async Task<Ok<IReadOnlyList<HarvestReadinessResponse>>> GetHarvestReadiness(
         string? filterByStatus,
-        IGardenPlannerFunctionService service,
+        IGardenPlannerToolService service,
         CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(service);
-        return TypedResults.Ok(await service.GetHarvestReadinessAsync(new HarvestReadinessFunctionRequest(filterByStatus), ct));
+        return TypedResults.Ok(await service.GetHarvestReadinessAsync(new HarvestReadinessRequest(filterByStatus), ct));
     }
 
-    private static Results<Ok<AppGardenAdviceResponse>, NotFound> GetLatestAdvice(IGardenPlannerFunctionService service)
+    private static Results<Ok<AppGardenAdviceResponse>, NotFound> GetLatestAdvice(IGardenPlannerToolService service)
     {
         ArgumentNullException.ThrowIfNull(service);
 
@@ -203,15 +203,15 @@ public static class GardenPlannerFunctionEndpoints
     }
 
     private static async Task<Ok<AppGardenAdviceResponse>> GenerateAdvice(
-        GeneratePlannerAdviceFunctionRequest? request,
-        IGardenPlannerFunctionService service,
+        GenerateAdviceRequest? request,
+        IGardenPlannerToolService service,
         CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(service);
-        return TypedResults.Ok(await service.GenerateAdviceAsync(request ?? new GeneratePlannerAdviceFunctionRequest(), ct));
+        return TypedResults.Ok(await service.GenerateAdviceAsync(request ?? new GenerateAdviceRequest(), ct));
     }
 
-    private static Ok<string> ClearHistory(IGardenPlannerFunctionService service)
+    private static Ok<string> ClearHistory(IGardenPlannerToolService service)
     {
         ArgumentNullException.ThrowIfNull(service);
         return TypedResults.Ok(service.ClearPlannerHistory());

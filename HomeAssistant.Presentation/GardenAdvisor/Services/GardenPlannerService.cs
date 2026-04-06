@@ -12,7 +12,7 @@ using HomeAssistant.Application.PotConfigurations.Abstractions;
 using HomeAssistant.Domain.PotConfigurations.Abstractions;
 using HomeAssistant.Presentation.GardenAdvisor.Abstractions;
 using HomeAssistant.Presentation.GardenAdvisor.Contracts;
-using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PlannerFunctions.Contracts;
+using HomeAssistant.Presentation.GardenAdvisor.Endpoints.ProtocolTools.Contracts;
 using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostGardenPlannerChat.Contracts;
 using AppGardenAdviceResponse = HomeAssistant.Application.GardenAdvisor.Contracts.Advice.GardenAdviceResponse;
 using Microsoft.Extensions.Options;
@@ -32,7 +32,7 @@ public sealed class GardenPlannerService : IGardenPlannerService
 
     private readonly IPotConfigurationRepository _potRepository;
     private readonly IPotIdentityMapProvider _potIdentityMapProvider;
-    private readonly IGardenPlannerFunctionService _functionService;
+    private readonly IGardenPlannerToolService _toolService;
     private readonly IChatAssistant _chatAssistant;
     private readonly IMqttClient _mqttClient;
     private readonly IGardenPlannerHistoryStore _historyStore;
@@ -45,7 +45,7 @@ public sealed class GardenPlannerService : IGardenPlannerService
     public GardenPlannerService(
         IPotConfigurationRepository potRepository,
         IPotIdentityMapProvider potIdentityMapProvider,
-        IGardenPlannerFunctionService functionService,
+        IGardenPlannerToolService toolService,
         IChatAssistant chatAssistant,
         IMqttClient mqttClient,
         IGardenPlannerHistoryStore historyStore,
@@ -54,7 +54,7 @@ public sealed class GardenPlannerService : IGardenPlannerService
     {
         _potRepository = potRepository ?? throw new ArgumentNullException(nameof(potRepository));
         _potIdentityMapProvider = potIdentityMapProvider ?? throw new ArgumentNullException(nameof(potIdentityMapProvider));
-        _functionService = functionService ?? throw new ArgumentNullException(nameof(functionService));
+        _toolService = toolService ?? throw new ArgumentNullException(nameof(toolService));
         _chatAssistant = chatAssistant ?? throw new ArgumentNullException(nameof(chatAssistant));
         _mqttClient = mqttClient ?? throw new ArgumentNullException(nameof(mqttClient));
         _historyStore = historyStore ?? throw new ArgumentNullException(nameof(historyStore));
@@ -235,18 +235,18 @@ public sealed class GardenPlannerService : IGardenPlannerService
         {
             return call.FunctionName switch
             {
-                "save_pot_configuration" => await _functionService.SavePotConfigurationAsync(DeserializeArgs<SavePlannerPotConfigurationFunctionRequest>(call.ArgumentsJson), ct),
-                "update_seed_status"     => await _functionService.UpdateSeedStatusAsync(DeserializeArgs<UpdatePlannerSeedStatusFunctionRequest>(call.ArgumentsJson), ct),
-                "get_pot_status"         => await _functionService.GetPotStatusAsync(DeserializeArgs<PotNumberFunctionRequest>(call.ArgumentsJson), ct),
-                "get_all_pots_status"    => await _functionService.GetAllPotsStatusAsync(ct),
-                "get_sensor_readings"    => await _functionService.GetSensorReadingsAsync(DeserializeArgs<PotNumberFunctionRequest>(call.ArgumentsJson), ct),
-                "get_available_rooms"    => FormatRooms(await _functionService.GetAvailableRoomsAsync(ct)),
-                "get_room_summary"       => FormatRoomSummary(await _functionService.GetRoomSummaryAsync(DeserializeArgs<RoomAreaFunctionRequest>(call.ArgumentsJson), ct)),
-                "get_dashboard_snapshot" => FormatDashboard(await _functionService.GetDashboardAsync(ct)),
-                "get_harvest_readiness"  => FormatHarvestReadiness(await _functionService.GetHarvestReadinessAsync(new HarvestReadinessFunctionRequest(DeserializeOptionalStatus(call.ArgumentsJson, "filter_by_status")), ct)),
-                "get_latest_garden_advice" => FormatLatestAdvice(_functionService.GetLatestAdvice()),
-                "generate_garden_advice" => FormatAdvice(await _functionService.GenerateAdviceAsync(new GeneratePlannerAdviceFunctionRequest(DeserializeOptionalBoolean(call.ArgumentsJson, "publish_to_mqtt") ?? true), ct)),
-                "clear_planner_history"  => _functionService.ClearPlannerHistory(),
+                "save_pot_configuration" => await _toolService.SavePotConfigurationAsync(DeserializeArgs<SavePotConfigurationRequest>(call.ArgumentsJson), ct),
+                "update_seed_status"     => await _toolService.UpdateSeedStatusAsync(DeserializeArgs<UpdateSeedStatusRequest>(call.ArgumentsJson), ct),
+                "get_pot_status"         => await _toolService.GetPotStatusAsync(DeserializeArgs<PotNumberRequest>(call.ArgumentsJson), ct),
+                "get_all_pots_status"    => await _toolService.GetAllPotsStatusAsync(ct),
+                "get_sensor_readings"    => await _toolService.GetSensorReadingsAsync(DeserializeArgs<PotNumberRequest>(call.ArgumentsJson), ct),
+                "get_available_rooms"    => FormatRooms(await _toolService.GetAvailableRoomsAsync(ct)),
+                "get_room_summary"       => FormatRoomSummary(await _toolService.GetRoomSummaryAsync(DeserializeArgs<RoomAreaRequest>(call.ArgumentsJson), ct)),
+                "get_dashboard_snapshot" => FormatDashboard(await _toolService.GetDashboardAsync(ct)),
+                "get_harvest_readiness"  => FormatHarvestReadiness(await _toolService.GetHarvestReadinessAsync(new HarvestReadinessRequest(DeserializeOptionalStatus(call.ArgumentsJson, "filter_by_status")), ct)),
+                "get_latest_garden_advice" => FormatLatestAdvice(_toolService.GetLatestAdvice()),
+                "generate_garden_advice" => FormatAdvice(await _toolService.GenerateAdviceAsync(new GenerateAdviceRequest(DeserializeOptionalBoolean(call.ArgumentsJson, "publish_to_mqtt") ?? true), ct)),
+                "clear_planner_history"  => _toolService.ClearPlannerHistory(),
                 _                        => $"Unknown tool '{call.FunctionName}'.",
             };
         }

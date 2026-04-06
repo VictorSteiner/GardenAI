@@ -16,6 +16,7 @@ public static class GardenAdvisorRouteBuilder
         endpoints.MapRoomInsightsRoutes();
         endpoints.MapGardenInsightsRoutes();
         endpoints.MapGardenAdviceRoutes();
+        endpoints.MapProtocolToolsRoutes();
 
         return endpoints;
     }
