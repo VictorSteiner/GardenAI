@@ -16,10 +16,16 @@ This repository uses GitHub automation for CI, pull request hygiene, dependency 
   - If missing, auto-links from branch names that include the issue number (for example `feature/123-short-title` -> `Refs #123`).
   - Fails the check when no explicit link exists and no issue number can be inferred.
 
-- `.github/workflows/bot-auto-approve.yml`
-  - Auto-approves PRs only when label `bot-auto-approve` is present.
-  - Uses `BOT_GITHUB_TOKEN`.
-  - Explicitly excludes `dependabot[bot]` so dependency PRs still require manual approval.
+- `.github/workflows/pr-auto-approve.yml`
+  - Runs on `pull_request_target` for `opened`, `reopened`, `synchronize`, `ready_for_review`, and `labeled` events.
+  - Uses a dedicated eligibility step that logs why a PR is approved or skipped before attempting auto-approval.
+  - Requires all of the following before approval can happen:
+    - PR is not a draft.
+    - `BOT_GITHUB_TOKEN` is configured.
+    - PR author is not `dependabot[bot]`.
+    - PR head repository matches the base repository (fork PRs are excluded).
+    - PR author association is trusted (`OWNER`, `MEMBER`, or `COLLABORATOR`) **or** label `bot-auto-approve` is present as an explicit override.
+  - `labeled` remains enabled so maintainers can add `bot-auto-approve` later to override an otherwise untrusted author association.
 
 - `.github/workflows/release-alpha.yml`
   - On push to `main`, creates semantic pre-release tags like `v0.1.0-alpha.1`.
@@ -57,6 +63,7 @@ In repository settings for `main` branch protection/ruleset:
 - Require status checks:
   - `Backend Build (.NET)`
   - `Frontend Build (Node)`
+  - `Require Linked Issue`
   - `Validate PR Title`
 - Require linear history
 - Allow merge methods:
