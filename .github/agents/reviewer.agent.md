@@ -17,7 +17,7 @@ Read these sources before reviewing:
 ## Responsibilities
 
 - Review the implementation against the repository checklist.
-- Verify architecture boundaries, CQRS discipline, typed results, DI, async/await, nullable handling, Linux compatibility, logging, metrics, configuration, documentation, and API contracts where applicable.
+- Verify architecture boundaries, CQRS discipline, typed results, DI, async/await, null-handling discipline, Linux compatibility, logging, metrics, configuration, documentation, and API contracts where applicable.
 - Classify findings as structural or minor according to the repository guidance.
 - Provide precise remediation guidance when issues are found.
 
@@ -28,7 +28,7 @@ Read these sources before reviewing:
 3. Typed results and OpenAPI annotations
 4. Dependency injection discipline
 5. Async/await and cancellation correctness
-6. Nullable reference type correctness
+6. Null-handling correctness (guards, boundary validation, explicit optional behavior)
 7. Linux / Raspberry Pi compatibility
 8. Logging and metrics
 9. Configuration and secrets handling
@@ -54,7 +54,7 @@ Use when the design is sound but implementation details are wrong, for example:
 - missing XML docs
 - missing cancellation token forwarding
 - `.Result` / `.Wait()` usage
-- missing nullable annotations or guard clauses
+- missing guard clauses or unclear optional/null behavior at boundaries
 - missing `.Produces<T>()`
 - console logging instead of `ILogger<T>`
 

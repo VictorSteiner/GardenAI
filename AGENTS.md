@@ -134,7 +134,7 @@ public sealed class MyRepository : IMyRepository { ... }
 - **Typed Results** – all endpoints return `Results.Ok<T>()`, `Results.NotFound()`, etc. with `.Produces<T>()`
 - **Repository Pattern** – inject interfaces, never `new` concrete classes
 - **`record` types for DTOs** – define request/response models as immutable records
-- **Nullable Reference Types enabled** – all code must be null-safe with `?` annotations
+- **Null Handling** – nullable reference types are disabled; enforce guard clauses and explicit validation at boundaries
 - **Async/Await throughout** – no `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()`
 - **Dependency Injection only** – all services resolved via constructor injection
 - **Configuration via DI** – options classes bound from `IConfiguration` in Program.cs
@@ -216,7 +216,7 @@ Single docker-compose.yml defines all services:
 5. **Repository Pattern** – all data access behind interfaces
 6. **No `new ConcreteService()`** – except in Program.cs, tests, or static factories
 7. **Async/Await Throughout** – no blocking calls
-8. **Null Safety** – nullable reference types enabled, guard clauses everywhere
+8. **Null Safety** – nullable reference types disabled; use guard clauses and explicit validation at all boundaries
 9. **Serilog Everywhere** – structured logging, no Console.WriteLine
 10. **Testability First** – interfaces enable mocking and substitution
 

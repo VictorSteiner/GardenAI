@@ -203,15 +203,16 @@ var mockRepo = new Mock<PlantPotRepository>();  // Less flexible
 
 ---
 
-## Nullable References in Interfaces
+## Optional Returns in Interfaces
 
-Enable `<Nullable>enable</Nullable>` in all `.csproj` files:
+Nullable reference types are disabled globally. Express optional return behavior
+through clear interface contracts and XML documentation:
 
 ```csharp
 public interface IPlantPotRepository
 {
     /// <summary>Gets a pot, or null if not found.</summary>
-    Task<PlantPot?> GetByIdAsync(Guid id, CancellationToken ct = default);  // ← ? for nullable
+    Task<PlantPot> GetByIdAsync(Guid id, CancellationToken ct = default);  // May return null when not found
 }
 ```
 
@@ -228,7 +229,7 @@ When planning or implementing a feature:
 - [ ] No concrete types leak across layer boundaries
 - [ ] All public methods have XML `<summary>` docs
 - [ ] Guard clauses for null/invalid input
-- [ ] Return types use `?` for nullable references
+- [ ] Optional return behavior is explicit in interface contracts and XML docs
 
 ---
 

@@ -61,7 +61,7 @@ If only minor issues are found, Engineer applies them inline, Reviewer rechecks,
 
 ## Rules
 
-- Preserve Clean Architecture, CQRS, DI, async/await, nullable, Linux compatibility, logging, metrics, and contract integrity standards from repository guidance.
+- Preserve Clean Architecture, CQRS, DI, async/await, null-handling discipline, Linux compatibility, logging, metrics, and contract integrity standards from repository guidance.
 - Do not invent alternate gates or approval wording.
 - Keep process traceable so users can still run Architect/Engineer/Reviewer/GitCommit separately if desired.
 - Follow all safety rules from `.github/agents/git-commit.agent.md` during the commit phase.

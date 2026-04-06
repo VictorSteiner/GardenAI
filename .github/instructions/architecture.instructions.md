@@ -490,15 +490,11 @@ builder.Host.UseSerilog((ctx, cfg) => cfg
 
 ## Null Safety
 
-### Nullable Reference Types Enabled
+### Nullable Reference Types Disabled
 
-All projects must have nullable reference types enabled in `.csproj`:
-
-```xml
-<PropertyGroup>
-  <Nullable>enable</Nullable>
-</PropertyGroup>
-```
+Nullable reference types are disabled globally via `Directory.Build.props`.
+Null handling is enforced through explicit boundary validation, guard clauses,
+and defensive checks where data can be missing.
 
 ### Guard Clauses
 
@@ -517,8 +513,6 @@ public sealed class MyService
     
     public async Task<MyDto> GetAsync(Guid id, CancellationToken ct)
     {
-        ArgumentNullException.ThrowIfNull(id);
-        
         var entity = await _repo.GetByIdAsync(id, ct);
         if (entity is null)
             return null;  // or throw if required
