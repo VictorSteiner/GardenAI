@@ -1,5 +1,5 @@
 ﻿namespace HomeAssistant.Presentation.Chat;
 
 /// <summary>Request payload used to create a persisted chat session.</summary>
-public sealed record CreateChatSessionRequest(string? Title, string? Capability);
+public sealed record CreateChatSessionRequest(string Title, string Capability);
 
