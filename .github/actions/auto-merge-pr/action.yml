@@ -53,10 +53,8 @@ runs:
         
         echo "⏳ Waiting for Backend Build (.NET) to pass..."
         while [ $ELAPSED -lt $TIMEOUT ]; do
-          # Check for backend build status
-          STATUS=$(gh pr checks $PR_NUMBER --repo $REPO 2>/dev/null | grep "Backend Build" | grep -c "pass")
-          
-          if [ "$STATUS" -eq 1 ]; then
+          # Check if backend build is in the list of completed checks
+          if gh pr checks $PR_NUMBER --repo $REPO 2>/dev/null | grep -q "Backend Build.*✓"; then
             echo "✅ Backend Build (.NET) passed!"
             exit 0
           fi
@@ -85,10 +83,8 @@ runs:
         
         echo "⏳ Waiting for Frontend Build (Node) to pass..."
         while [ $ELAPSED -lt $TIMEOUT ]; do
-          # Check for frontend build status
-          STATUS=$(gh pr checks $PR_NUMBER --repo $REPO 2>/dev/null | grep "Frontend Build" | grep -c "pass")
-          
-          if [ "$STATUS" -eq 1 ]; then
+          # Check if frontend build is in the list of completed checks
+          if gh pr checks $PR_NUMBER --repo $REPO 2>/dev/null | grep -q "Frontend Build.*✓"; then
             echo "✅ Frontend Build (Node) passed!"
             exit 0
           fi
