@@ -14,6 +14,8 @@ Keep the codebase readable and SOLID-friendly by separating files by responsibil
 - Do not mix service implementations, DTO/contracts, interfaces, repositories, configuration types, providers, clients, and exceptions in the same folder when dedicated subfolders would improve clarity.
 - Keep one public type per file.
 - The filename must match the type name.
+- Place feature-local contracts next to the owning feature flow (endpoint/command/query/service).
+- Keep only truly reused contracts in shared `Contracts/` folders.
 
 ## Preferred Subfolders
 
@@ -41,6 +43,7 @@ Use these subfolders when a feature contains multiple responsibility kinds:
 - Separate abstractions from implementations.
 - Commands, queries, handlers, dispatchers, and agent implementations should not be dumped into one folder when subfolders improve clarity.
 - For features with multiple commands or queries, prefer one folder per command/query so related request, handler, validator, and mapping files stay together.
+- For contract-heavy features, split `Contracts/` by flow (for example `Contracts/Completions`, `Contracts/Agentic`, `Contracts/Advice`) and avoid flat catch-all contract folders.
 
 ### Infrastructure
 - Separate repositories from EF configurations.
@@ -52,6 +55,29 @@ Use these subfolders when a feature contains multiple responsibility kinds:
 - Avoid placing request/response contracts in the same folder as concrete service implementations unless the feature is still trivially small.
 - When a feature exposes multiple HTTP endpoints, introduce a `RouteBuilders/` folder with a `<Domain>RouteBuilder` entry point.
 - Place each endpoint in its own folder under `Endpoints/<EndpointName>/` instead of flattening multiple endpoint files into one folder.
+- Place endpoint-specific request/response contracts under the endpoint folder, for example `Endpoints/<EndpointName>/Contracts/`.
+- Keep shared presentation contracts only for models reused across multiple endpoints.
+
+## Contract Placement Examples
+
+```text
+HomeAssistant.Presentation/GardenAdvisor/
+  Endpoints/
+	PostGardenPlannerChat/
+	  Contracts/
+		GardenPlannerChatRequest.cs
+		GardenPlannerChatResponse.cs
+  Contracts/
+	DashboardAggregationResponse.cs   # reused by several endpoints
+
+HomeAssistant.Application/Chat/
+  Contracts/
+	Completions/
+	  ChatCompletionRequest.cs
+	Agentic/
+	  AgenticChatResult.cs
+	  ChatFunctionCall.cs
+```
 
 ## Exceptions
 
