@@ -2,7 +2,6 @@
 
 Welcome! This project uses a **four-agent workflow** for all feature development.
 
----
 
 ## 🎯 The Four Agents
 

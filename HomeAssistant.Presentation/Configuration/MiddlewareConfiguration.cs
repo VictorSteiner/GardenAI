@@ -1,10 +1,16 @@
 ﻿using HomeAssistant.Application.Messaging.Abstractions;
-using HomeAssistant.Presentation.GardenAdvisor.RouteBuilders;
+using HomeAssistant.Presentation.Chat.RouteBuilders;
 using Scalar.AspNetCore;
 
 namespace HomeAssistant.Presentation.Configuration;
 
 /// <summary>Extension methods for middleware and routing configuration.</summary>
+/// <remarks>
+/// These extension methods are called from Program.cs in the following order:
+/// 1. ConfigureMiddlewareAsync() – Initialize external services (MQTT, database, etc.)
+/// 2. ConfigurePipeline() – Configure middleware (OpenAPI, error handlers, etc.)
+/// 3. MapRoutes() – Map all HTTP endpoints by feature
+/// </remarks>
 internal static class MiddlewareConfiguration
 {
     /// <summary>Configures middleware pipeline and initializes external connections.</summary>
@@ -50,7 +56,7 @@ internal static class MiddlewareConfiguration
     {
         ArgumentNullException.ThrowIfNull(app);
 
-        app.MapGardenAdvisorRoutes();
+        app.MapChatRoutes();
 
         return app;
     }
