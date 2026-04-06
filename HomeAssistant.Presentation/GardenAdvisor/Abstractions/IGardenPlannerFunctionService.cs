@@ -1,4 +1,5 @@
 ﻿using HomeAssistant.Presentation.GardenAdvisor.Contracts;
+using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PlannerFunctions.Contracts;
 
 namespace HomeAssistant.Presentation.GardenAdvisor.Abstractions;
 

@@ -1,6 +1,6 @@
 ﻿using HomeAssistant.Application.GardenAdvisor.Abstractions;
 using HomeAssistant.Application.GardenAdvisor.Contracts;
-using HomeAssistant.Presentation.GardenAdvisor.Contracts;
+using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostGenerateGardenAdvice.Contracts;
 
 namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostGenerateGardenAdvice;
 

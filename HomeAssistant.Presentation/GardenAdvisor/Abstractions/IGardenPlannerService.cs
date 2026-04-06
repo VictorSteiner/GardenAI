@@ -1,4 +1,6 @@
-﻿namespace HomeAssistant.Presentation.GardenAdvisor.Abstractions;
+﻿using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostGardenPlannerChat.Contracts;
+
+namespace HomeAssistant.Presentation.GardenAdvisor.Abstractions;
 
 /// <summary>
 /// Processes natural-language garden planning messages, enriches them with live garden context,
@@ -12,6 +14,6 @@ public interface IGardenPlannerService
     /// </summary>
     /// <param name="message">The user's free-form message.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task<Contracts.GardenPlannerChatResponse> ChatAsync(string message, CancellationToken ct = default);
+    Task<GardenPlannerChatResponse> ChatAsync(string message, CancellationToken ct = default);
 }
 

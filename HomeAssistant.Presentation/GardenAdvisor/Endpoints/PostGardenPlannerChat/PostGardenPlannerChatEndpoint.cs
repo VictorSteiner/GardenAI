@@ -1,5 +1,5 @@
 ﻿using HomeAssistant.Presentation.GardenAdvisor.Abstractions;
-using HomeAssistant.Presentation.GardenAdvisor.Contracts;
+using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostGardenPlannerChat.Contracts;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostGardenPlannerChat;

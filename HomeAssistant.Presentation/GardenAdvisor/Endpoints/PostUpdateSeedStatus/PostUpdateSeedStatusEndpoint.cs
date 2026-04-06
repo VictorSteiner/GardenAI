@@ -1,6 +1,6 @@
 ﻿using HomeAssistant.Application.PotConfigurations.Commands;
 using HomeAssistant.Application.Dispatching;
-using HomeAssistant.Presentation.GardenAdvisor.Contracts;
+using HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostUpdateSeedStatus.Contracts;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostUpdateSeedStatus;
