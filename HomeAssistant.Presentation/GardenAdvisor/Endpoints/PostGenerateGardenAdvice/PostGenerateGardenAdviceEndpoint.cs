@@ -1,4 +1,5 @@
-﻿using HomeAssistant.Presentation.GardenAdvisor.Abstractions;
+﻿using HomeAssistant.Application.GardenAdvisor.Abstractions;
+using HomeAssistant.Application.GardenAdvisor.Contracts;
 using HomeAssistant.Presentation.GardenAdvisor.Contracts;
 
 namespace HomeAssistant.Presentation.GardenAdvisor.Endpoints.PostGenerateGardenAdvice;
@@ -34,7 +35,7 @@ internal static class PostGenerateGardenAdviceEndpoint
             .WithName("PostGenerateGardenAdvice")
             .WithSummary("Generates a new advice summary from latest sensor and weather data")
             .WithDescription("Triggers Ollama to evaluate the latest pot state with weather context and optional MQTT publication.")
-            .Produces<GardenAdviceResponse>()
+            .Produces<HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse>()
             .ProducesProblem(StatusCodes.Status502BadGateway);
     }
 }

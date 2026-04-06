@@ -1,5 +1,6 @@
-﻿using HomeAssistant.Presentation.Chat;
+﻿using HomeAssistant.Application.Chat.Abstractions;
 using HomeAssistant.Presentation.Chat.Services;
+using Microsoft.Extensions.Logging;
 
 namespace HomeAssistant.Presentation.Configuration;
 
@@ -14,13 +15,18 @@ internal static class ExternalClientsConfiguration
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        services.AddHttpClient<IChatAssistant, OllamaChatAssistant>((sp, client) =>
+        services.AddHttpClient("ollama-chat", client =>
         {
-            var config = sp.GetRequiredService<IConfiguration>();
-            var baseUrl = config["Ollama:BaseUrl"] ?? "http://localhost:11434/";
+            var baseUrl = configuration["Ollama:BaseUrl"] ?? "http://localhost:11434/";
             client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
             client.Timeout = TimeSpan.FromSeconds(60);
         });
+
+        services.AddScoped<IChatAssistant>(sp =>
+            new OllamaChatAssistant(
+                sp.GetRequiredService<IHttpClientFactory>().CreateClient("ollama-chat"),
+                sp.GetRequiredService<IConfiguration>(),
+                sp.GetRequiredService<ILogger<OllamaChatAssistant>>()));
 
         return services;
     }

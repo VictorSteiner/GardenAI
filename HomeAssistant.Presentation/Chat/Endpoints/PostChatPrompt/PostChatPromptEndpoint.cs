@@ -1,4 +1,6 @@
-﻿using HomeAssistant.Presentation.Chat.Services;
+﻿using HomeAssistant.Application.Chat.Abstractions;
+using HomeAssistant.Application.Chat.Contracts;
+using HomeAssistant.Presentation.Chat.Services;
 
 namespace HomeAssistant.Presentation.Chat.Endpoints.PostChatPrompt;
 
@@ -14,7 +16,7 @@ internal static class PostChatPromptEndpoint
                 string.Empty,
                 async Task<IResult>(
                     ChatRequest request,
-                    IChatAssistant assistant,
+                    HomeAssistant.Application.Chat.Abstractions.IChatAssistant assistant,
                     IConfiguration configuration,
                     CancellationToken ct) =>
                 {
@@ -23,7 +25,7 @@ internal static class PostChatPromptEndpoint
 
                     try
                     {
-                        var completion = new ChatCompletionRequest(
+                        var completion = new HomeAssistant.Application.Chat.Contracts.ChatCompletionRequest(
                             ChatSystemPromptBuilder.Build(configuration, "helper"),
                             request.Prompt,
                             [],

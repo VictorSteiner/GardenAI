@@ -1,5 +1,7 @@
 ﻿using System.Text;
 using HomeAssistant.Application.Dispatching;
+using HomeAssistant.Application.GardenAdvisor.Abstractions;
+using HomeAssistant.Application.GardenAdvisor.Contracts;
 using HomeAssistant.Application.PotConfigurations.Commands;
 using HomeAssistant.Application.PotConfigurations.DTOs;
 using HomeAssistant.Application.PotConfigurations.Queries;
@@ -34,8 +36,8 @@ public sealed class GardenPlannerFunctionService : IGardenPlannerFunctionService
     private readonly IQueryHandler<GetRoomSummaryQuery, RoomSummaryDto> _roomSummaryHandler;
     private readonly IQueryHandler<GetHarvestReadinessQuery, IReadOnlyList<HarvestReadinessDto>> _harvestReadinessHandler;
     private readonly IHomeAssistantAreaProvider _areaProvider;
-    private readonly IGardenAdviceStateStore _adviceStateStore;
-    private readonly IGardenAdvisorService _gardenAdvisorService;
+    private readonly HomeAssistant.Application.GardenAdvisor.Abstractions.IGardenAdviceStateStore _adviceStateStore;
+    private readonly HomeAssistant.Application.GardenAdvisor.Abstractions.IGardenAdvisorService _gardenAdvisorService;
     private readonly IGardenPlannerHistoryStore _historyStore;
     private readonly ILogger<GardenPlannerFunctionService> _logger;
 
@@ -48,8 +50,8 @@ public sealed class GardenPlannerFunctionService : IGardenPlannerFunctionService
         IQueryHandler<GetRoomSummaryQuery, RoomSummaryDto> roomSummaryHandler,
         IQueryHandler<GetHarvestReadinessQuery, IReadOnlyList<HarvestReadinessDto>> harvestReadinessHandler,
         IHomeAssistantAreaProvider areaProvider,
-        IGardenAdviceStateStore adviceStateStore,
-        IGardenAdvisorService gardenAdvisorService,
+        HomeAssistant.Application.GardenAdvisor.Abstractions.IGardenAdviceStateStore adviceStateStore,
+        HomeAssistant.Application.GardenAdvisor.Abstractions.IGardenAdvisorService gardenAdvisorService,
         IGardenPlannerHistoryStore historyStore,
         ILogger<GardenPlannerFunctionService> logger)
     {
@@ -223,10 +225,10 @@ public sealed class GardenPlannerFunctionService : IGardenPlannerFunctionService
     }
 
     /// <inheritdoc/>
-    public GardenAdviceResponse? GetLatestAdvice() => _adviceStateStore.GetLatest();
+    public HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse? GetLatestAdvice() => _adviceStateStore.GetLatest();
 
     /// <inheritdoc/>
-    public Task<GardenAdviceResponse> GenerateAdviceAsync(GeneratePlannerAdviceFunctionRequest request, CancellationToken ct = default)
+    public Task<HomeAssistant.Application.GardenAdvisor.Contracts.GardenAdviceResponse> GenerateAdviceAsync(GeneratePlannerAdviceFunctionRequest request, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(request);
         return _gardenAdvisorService.GenerateAdviceAsync(request.PublishToMqtt, ct);

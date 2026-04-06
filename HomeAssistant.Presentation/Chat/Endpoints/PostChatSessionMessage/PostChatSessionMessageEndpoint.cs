@@ -1,4 +1,6 @@
-﻿using HomeAssistant.Domain.Assistant.Abstractions;
+﻿using HomeAssistant.Application.Chat.Abstractions;
+using HomeAssistant.Application.Chat.Contracts;
+using HomeAssistant.Domain.Assistant.Abstractions;
 using HomeAssistant.Domain.Assistant.Entities;
 using HomeAssistant.Presentation.Chat.Services;
 
@@ -18,7 +20,7 @@ internal static class PostChatSessionMessageEndpoint
                     Guid sessionId,
                     PostChatSessionMessageRequest request,
                     IChatSessionRepository sessions,
-                    IChatAssistant assistant,
+                    HomeAssistant.Application.Chat.Abstractions.IChatAssistant assistant,
                     IConfiguration configuration,
                     CancellationToken ct) =>
                 {
@@ -44,12 +46,12 @@ internal static class PostChatSessionMessageEndpoint
                     var maxHistory = int.TryParse(configuration["Assistant:MaxHistoryMessages"], out var parsedMax) ? parsedMax : 30;
                     var historyMessages = await sessions.GetMessagesAsync(sessionId, maxHistory, ct);
 
-                    var completion = new ChatCompletionRequest(
+                    var completion = new HomeAssistant.Application.Chat.Contracts.ChatCompletionRequest(
                         ChatSystemPromptBuilder.Build(configuration, session.Capability),
                         request.Prompt.Trim(),
                         historyMessages
                             .Where(m => m.Role is "user" or "assistant")
-                            .Select(m => new ChatHistoryMessage(m.Role, m.Content))
+                            .Select(m => new HomeAssistant.Application.Chat.Contracts.ChatHistoryMessage(m.Role, m.Content))
                             .ToList(),
                         session.Capability);
 

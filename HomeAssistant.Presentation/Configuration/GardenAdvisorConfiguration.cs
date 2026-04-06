@@ -1,6 +1,7 @@
-﻿using HomeAssistant.Presentation.GardenAdvisor.Abstractions;
+﻿using HomeAssistant.Application.GardenAdvisor.Abstractions;
+using HomeAssistant.Application.GardenAdvisor.Configuration;
+using HomeAssistant.Application.GardenAdvisor.Services;
 using HomeAssistant.Presentation.GardenAdvisor.BackgroundServices;
-using HomeAssistant.Presentation.GardenAdvisor.Configuration;
 using HomeAssistant.Presentation.GardenAdvisor.Services;
 
 namespace HomeAssistant.Presentation.Configuration;
@@ -20,15 +21,15 @@ internal static class GardenAdvisorConfiguration
         services.Configure<GardenAdvisorOptions>(configuration.GetSection("GardenAdvisor"));
 
         // Singleton stores and providers
-        services.AddSingleton<IPlantProfileProvider, PlantProfileProvider>();
-        services.AddSingleton<IGardenAdviceStateStore, GardenAdviceStateStore>();
-        services.AddSingleton<IGardenPlannerHistoryStore, GardenPlannerHistoryStore>();
+        services.AddSingleton<IPlantProfileProvider, HomeAssistant.Application.GardenAdvisor.Services.PlantProfileProvider>();
+        services.AddSingleton<IGardenAdviceStateStore, HomeAssistant.Application.GardenAdvisor.Services.GardenAdviceStateStore>();
+        services.AddSingleton<HomeAssistant.Presentation.GardenAdvisor.Abstractions.IGardenPlannerHistoryStore, GardenPlannerHistoryStore>();
 
         // Scoped services
-        services.AddScoped<IGardenAdvisorService, GardenAdvisorService>();
+        services.AddScoped<IGardenAdvisorService, HomeAssistant.Application.GardenAdvisor.Services.GardenAdvisorService>();
         services.AddScoped<HomeAssistant.Presentation.GardenAdvisor.Services.IHomeAssistantAreaProvider,
             HomeAssistant.Presentation.GardenAdvisor.Services.HomeAssistantAreaProvider>();
-        services.AddScoped<IGardenPlannerService, GardenPlannerService>();
+        services.AddScoped<HomeAssistant.Presentation.GardenAdvisor.Abstractions.IGardenPlannerService, GardenPlannerService>();
 
         // Background services
         services.AddHostedService<GardenAdviceScheduleBackgroundService>();

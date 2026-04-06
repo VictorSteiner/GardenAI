@@ -56,3 +56,8 @@ A task is done only when all are true:
 - Related issue is closed
 - Parent issue progress is updated (automated workflow handles this for sub-issues)
 
+## Commit Automation Default
+
+- After Reviewer approval (`✅ All checks passed. Ready to merge.` or `🟡 Approved with inline fixes.`), run the Git Commit phase automatically unless the user explicitly asks to pause.
+- Git Commit phase must always include: `git status`, `git diff`, conventional commit with issue link, push branch, and PR creation/update.
+

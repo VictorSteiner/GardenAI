@@ -1,11 +1,12 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using HomeAssistant.Presentation.Chat;
+using HomeAssistant.Application.Chat.Abstractions;
+using HomeAssistant.Application.Chat.Contracts;
 
 namespace HomeAssistant.Presentation.Chat.Services;
 
 /// <summary>Chat assistant backed by Ollama's <c>/api/generate</c> endpoint.</summary>
-public sealed class OllamaChatAssistant : IChatAssistant
+public sealed class OllamaChatAssistant : HomeAssistant.Application.Chat.Abstractions.IChatAssistant
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -26,7 +27,7 @@ public sealed class OllamaChatAssistant : IChatAssistant
     }
 
     /// <inheritdoc/>
-    public async Task<string> GetReplyAsync(ChatCompletionRequest request, CancellationToken ct = default)
+    public async Task<string> GetReplyAsync(HomeAssistant.Application.Chat.Contracts.ChatCompletionRequest request, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(request);
         if (string.IsNullOrWhiteSpace(request.Prompt))
@@ -47,12 +48,12 @@ public sealed class OllamaChatAssistant : IChatAssistant
     }
 
     /// <inheritdoc/>
-    public async Task<AgenticChatResult> GetAgenticReplyAsync(
+    public async Task<HomeAssistant.Application.Chat.Contracts.AgenticChatResult> GetAgenticReplyAsync(
         string systemPrompt,
-        IReadOnlyList<ChatHistoryMessage> history,
+        IReadOnlyList<HomeAssistant.Application.Chat.Contracts.ChatHistoryMessage> history,
         string userMessage,
-        IReadOnlyList<ChatToolDefinition> tools,
-        Func<ChatFunctionCall, CancellationToken, Task<string>> toolExecutor,
+        IReadOnlyList<HomeAssistant.Application.Chat.Contracts.ChatToolDefinition> tools,
+        Func<HomeAssistant.Application.Chat.Contracts.ChatFunctionCall, CancellationToken, Task<string>> toolExecutor,
         int maxIterations = 5,
         CancellationToken ct = default)
     {
@@ -64,7 +65,7 @@ public sealed class OllamaChatAssistant : IChatAssistant
 
         var model = _configuration["Ollama:Model"] ?? "llama3.2:3b";
         var ollamaTools = tools.Select(MapToOllamaTool).ToList();
-        var executedCalls = new List<ChatFunctionCall>();
+        var executedCalls = new List<HomeAssistant.Application.Chat.Contracts.ChatFunctionCall>();
 
         // Build working message list: system + history + new user message
         var messages = new List<OllamaMessage> { new("system", systemPrompt) };
@@ -113,7 +114,7 @@ public sealed class OllamaChatAssistant : IChatAssistant
                         ? JsonSerializer.Serialize(tc.Function.Arguments, JsonOptions)
                         : "{}";
 
-                    var call = new ChatFunctionCall(funcName, argsJson);
+                    var call = new HomeAssistant.Application.Chat.Contracts.ChatFunctionCall(funcName, argsJson);
                     executedCalls.Add(call);
 
                     _logger.LogInformation("Executing tool call: {FunctionName}({Args}).", funcName, argsJson);
@@ -128,11 +129,11 @@ public sealed class OllamaChatAssistant : IChatAssistant
 
             // ── Text response — we're done ───────────────────────────────
             var text = result.Message.Content?.Trim() ?? string.Empty;
-            return new AgenticChatResult(text, executedCalls.AsReadOnly());
+            return new HomeAssistant.Application.Chat.Contracts.AgenticChatResult(text, executedCalls.AsReadOnly());
         }
 
         _logger.LogWarning("Agentic loop hit max iterations ({Max}); returning partial result.", maxIterations);
-        return new AgenticChatResult(
+        return new HomeAssistant.Application.Chat.Contracts.AgenticChatResult(
             "I've processed your request but ran out of reasoning steps. Please try again.",
             executedCalls.AsReadOnly());
     }
@@ -170,7 +171,7 @@ public sealed class OllamaChatAssistant : IChatAssistant
 
     // ── Mapping helpers ───────────────────────────────────────────────────
 
-    private static OllamaTool MapToOllamaTool(ChatToolDefinition def)
+    private static OllamaTool MapToOllamaTool(HomeAssistant.Application.Chat.Contracts.ChatToolDefinition def)
     {
         var props = def.Properties.ToDictionary(
             kv => kv.Key,
