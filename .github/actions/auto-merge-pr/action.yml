@@ -1,10 +1,11 @@
 ﻿name: Auto-Merge PR
-description: Automatically merges a pull request using rebase strategy when all checks pass
+description: Automatically merges a pull request using rebase strategy when all relevant checks pass
 
 runs:
   using: composite
   steps:
-    - name: Wait for Checks to Pass
+    - name: Detect Changed Areas
+      id: changes
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
@@ -12,25 +13,92 @@ runs:
         PR_NUMBER=${{ github.event.pull_request.number }}
         REPO=${{ github.repository }}
         
-        # Wait up to 10 minutes for checks to complete and pass
-        TIMEOUT=600
+        # Get list of changed files
+        FILES=$(gh pr diff $PR_NUMBER --repo $REPO --name-only)
+        
+        BACKEND_CHANGED=false
+        FRONTEND_CHANGED=false
+        
+        echo "Changed files:"
+        echo "$FILES"
+        
+        # Check if backend files changed
+        if echo "$FILES" | grep -qE '(HomeAssistant\.|\.csproj|Directory\.Packages\.props)'; then
+          BACKEND_CHANGED=true
+          echo "✅ Backend changes detected"
+        fi
+        
+        # Check if frontend files changed
+        if echo "$FILES" | grep -qE 'frontend/'; then
+          FRONTEND_CHANGED=true
+          echo "✅ Frontend changes detected"
+        fi
+        
+        echo "backend_changed=$BACKEND_CHANGED" >> $GITHUB_OUTPUT
+        echo "frontend_changed=$FRONTEND_CHANGED" >> $GITHUB_OUTPUT
+
+    - name: Wait for Backend Build
+      if: steps.changes.outputs.backend_changed == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        PR_NUMBER=${{ github.event.pull_request.number }}
+        REPO=${{ github.repository }}
+        
+        # Wait up to 15 minutes for backend build
+        TIMEOUT=900
         ELAPSED=0
         INTERVAL=10
         
+        echo "⏳ Waiting for Backend Build (.NET) to pass..."
         while [ $ELAPSED -lt $TIMEOUT ]; do
-          STATUS=$(gh pr checks $PR_NUMBER --repo $REPO --required)
+          # Check for backend build status
+          STATUS=$(gh pr checks $PR_NUMBER --repo $REPO 2>/dev/null | grep "Backend Build" | grep -c "pass")
           
-          if [ $? -eq 0 ]; then
-            echo "✅ All required checks passed!"
+          if [ "$STATUS" -eq 1 ]; then
+            echo "✅ Backend Build (.NET) passed!"
             exit 0
           fi
           
-          echo "⏳ Waiting for checks... ($ELAPSED/$TIMEOUT seconds)"
+          echo "⏳ Waiting for Backend Build... ($ELAPSED/$TIMEOUT seconds)"
           sleep $INTERVAL
           ELAPSED=$((ELAPSED + INTERVAL))
         done
         
-        echo "❌ Checks did not pass within timeout"
+        echo "⚠️ Backend Build did not complete in time"
+        exit 1
+
+    - name: Wait for Frontend Build
+      if: steps.changes.outputs.frontend_changed == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        PR_NUMBER=${{ github.event.pull_request.number }}
+        REPO=${{ github.repository }}
+        
+        # Wait up to 15 minutes for frontend build
+        TIMEOUT=900
+        ELAPSED=0
+        INTERVAL=10
+        
+        echo "⏳ Waiting for Frontend Build (Node) to pass..."
+        while [ $ELAPSED -lt $TIMEOUT ]; do
+          # Check for frontend build status
+          STATUS=$(gh pr checks $PR_NUMBER --repo $REPO 2>/dev/null | grep "Frontend Build" | grep -c "pass")
+          
+          if [ "$STATUS" -eq 1 ]; then
+            echo "✅ Frontend Build (Node) passed!"
+            exit 0
+          fi
+          
+          echo "⏳ Waiting for Frontend Build... ($ELAPSED/$TIMEOUT seconds)"
+          sleep $INTERVAL
+          ELAPSED=$((ELAPSED + INTERVAL))
+        done
+        
+        echo "⚠️ Frontend Build did not complete in time"
         exit 1
 
     - name: Merge PR (Rebase)
